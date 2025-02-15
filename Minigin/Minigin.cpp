@@ -11,10 +11,17 @@
 #include <SDL_image.h>
 #include <SDL_ttf.h>
 #include "Minigin.h"
+
+#include <thread>
+
+#include "FPSComponent.h"
+#include "GameObject.h"
 #include "InputManager.h"
 #include "SceneManager.h"
 #include "Renderer.h"
 #include "ResourceManager.h"
+#include "Scene.h"
+#include "TextComponent.h"
 
 SDL_Window* g_window{};
 
@@ -97,20 +104,75 @@ dae::Minigin::~Minigin()
 	SDL_Quit();
 }
 
+void dae::Minigin::DeleteObjects(std::string sceneName)
+{
+	int idxObj{ 0 };
+	
+	for (auto& gameOBJ : SceneManager::GetInstance().FindSceneByName(sceneName)->GetGameObjects())
+	{
+        if (gameOBJ->GetIsMarkedForDestruction())
+        {
+			auto& gameObjects = SceneManager::GetInstance().FindSceneByName(sceneName)->GetGameObjects();
+			gameObjects.erase(gameObjects.begin() + idxObj);
+
+			break;
+        }
+
+		for (const auto& component : gameOBJ->GetAllComponents())
+		{
+			if (component->GetIsMarkedForDestruction())
+			{
+				gameOBJ->DeleteComponent(*component);
+			}
+		}
+
+		idxObj++;
+	}
+}
+
 void dae::Minigin::Run(const std::function<void()>& load)
 {
 	load();
 #ifndef __EMSCRIPTEN__
 	while (!m_quit)
+	{
 		RunOneFrame();
+		DeleteObjects("Demo");
+	}
+		
+		
 #else
 	emscripten_set_main_loop_arg(&LoopCallback, this, 0, true);
 #endif
 }
 
+void dae::Minigin::Update()
+{
+	const auto fpsObj = SceneManager::GetInstance().FindSceneByName("Demo")->GetGameObjectByName("FPSGOBJ");
+	auto& fpsComp = fpsObj->GetComponent<FPSComponent>();
+
+	fpsComp.Update();
+	fpsObj->GetComponent<TextComponent>().SetText(std::to_string(std::floor(fpsComp.GetFps() * 100) / 100).substr(0, 4));
+}
+
 void dae::Minigin::RunOneFrame()
 {
+	auto last_time = std::chrono::high_resolution_clock::now();
+	float lag = 0.0f;
+
+	const auto current_time = std::chrono::high_resolution_clock::now();
+	const float delta_time = std::chrono::duration<float>(current_time - last_time).count();
+	last_time = current_time;
+	lag += delta_time;
+	Update();
 	m_quit = !InputManager::GetInstance().ProcessInput();
+	while (lag >= fixed_time_step)
+	{
+		//Fixed_update(fixed_time_step);
+		lag -= fixed_time_step;
+	}
 	SceneManager::GetInstance().Update();
 	Renderer::GetInstance().Render();
+	const auto sleep_time = current_time + std::chrono::milliseconds(ms_per_frame) - std::chrono::high_resolution_clock::now();
+	std::this_thread::sleep_for(sleep_time);
 }
