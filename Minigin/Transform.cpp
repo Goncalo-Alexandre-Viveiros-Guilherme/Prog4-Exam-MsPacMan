@@ -1,6 +1,6 @@
 #include "Transform.h"
 
-dae::Transform::Transform(GameObject* parent): Component(parent), m_position(0,0,0)
+dae::Transform::Transform(): m_position(0,0,0)
 {
 }
 

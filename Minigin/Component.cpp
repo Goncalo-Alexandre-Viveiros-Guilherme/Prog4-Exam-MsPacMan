@@ -6,6 +6,14 @@ Component::Component(const dae::GameObject* parent) // Ensure this matches the a
 {
 }
 
+void Component::Update()
+{
+}
+
+void Component::Render()
+{
+}
+
 void Component::SetToDestroy()
 {
 	m_IsMarkedForDestruction = true;

@@ -4,18 +4,20 @@
 #include <stdexcept>
 #include <vector>
 #include "Component.h"
+#include "Transform.h"
 
 
 namespace dae
 {
-	class GameObject 
+	class GameObject final
 	{
 		
 	public:
-		virtual void Update();
-		virtual void Render() const;
+		void Update();
+		void Render() const;
 
-		void SetPosition(float x, float y) const;
+		void SetPosition(float x, float y);
+		const glm::vec3& GetPosition() const;
 		void SetToDestroy();
 		bool GetIsMarkedForDestruction() const;
 		std::vector<Component*> GetAllComponents();
@@ -78,13 +80,14 @@ namespace dae
 		void DeleteComponent(Component& componentToDelete);
 
 		GameObject(std::string name);
-		virtual ~GameObject();
+		~GameObject();
 		GameObject(const GameObject& other) = delete;
 		GameObject(GameObject&& other) = delete;
 		GameObject& operator=(const GameObject& other) = delete;
 		GameObject& operator=(GameObject&& other) = delete;
 
 	private:
+		Transform m_Transform;
 		bool m_IsEnabled;
 		bool m_IsMarkedForDestruction{false};
 		std::vector<Component*> m_Components;

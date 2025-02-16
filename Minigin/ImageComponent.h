@@ -13,6 +13,7 @@ class ImageComponent : public Component
 {
 public:
 	ImageComponent(const dae::GameObject* parent);
+	void Render() override;
 	void SetTexture(const std::string& filename);
 	std::shared_ptr<dae::Texture2D> GetTex();
 

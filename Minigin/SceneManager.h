@@ -13,7 +13,7 @@ namespace dae
 		Scene& CreateScene(const std::string& name);
 
 		void Update();
-		void Render();
+		void Render() const;
 		std::shared_ptr<Scene> FindSceneByName(std::string name) const;
 	private:
 		friend class Singleton<SceneManager>;

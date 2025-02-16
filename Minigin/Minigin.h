@@ -11,9 +11,9 @@ namespace dae
 	public:
 		explicit Minigin(const std::filesystem::path& dataPath);
 		~Minigin();
-		void DeleteObjects(std::string sceneName);
+		static void DeleteObjects(std::string sceneName);
 		void Run(const std::function<void()>& load);
-		void Fixed_update(float fixedTimeStep);
+		void Fixed_update();
 		static void Update();
 		void RunOneFrame();
 
@@ -23,8 +23,7 @@ namespace dae
 		Minigin& operator=(Minigin&& other) = delete;
 
 	private:
-		float fixed_time_step{ 0.02f };
-		std::chrono::milliseconds ms_per_frame{16};
 		bool m_quit{};
+		double m_Lag{};
 	};
 }

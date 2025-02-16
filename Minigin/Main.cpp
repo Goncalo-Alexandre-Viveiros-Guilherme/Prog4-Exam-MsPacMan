@@ -17,7 +17,6 @@
 #include "FPSComponent.h"
 #include "GameObject.h"
 #include "ImageComponent.h"
-#include "RenderComponent.h"
 #include "TextComponent.h"
 namespace fs = std::filesystem;
 
@@ -28,26 +27,22 @@ void load()
 	auto go = std::make_shared<dae::GameObject>("BackgroundGOBJ");
 	go->AddComponent<ImageComponent>();
 	go->GetComponent<ImageComponent>().SetTexture("background.tga");
-	go->AddComponent<RenderComponent>();
 	scene.Add(go);
 
 	go = std::make_shared<dae::GameObject>("LogoGOBJ");
 	go->AddComponent<ImageComponent>();
 	go->GetComponent<ImageComponent>().SetTexture("logo.tga");
 	go->SetPosition(216, 180);
-	go->AddComponent<RenderComponent>();
 	scene.Add(go);
 
 	go = std::make_shared<dae::GameObject>("TextGOBJ");
 	auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 36);
 	go->AddComponent<TextComponent>("Programming 4 Assignment", font);
-	go->AddComponent<RenderComponent>();
 	go->SetPosition(80, 20);
 	scene.Add(go);
 
 	go = std::make_shared<dae::GameObject>("FPSGOBJ");
 	go->AddComponent<TextComponent>("0", font);
-	go->AddComponent<RenderComponent>();
 	go->AddComponent<FPSComponent>();
 	go->SetPosition(0, 0);
 	scene.Add(go);

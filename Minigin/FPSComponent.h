@@ -5,12 +5,13 @@ class FPSComponent final : public Component
 {
 public:
     FPSComponent(const dae::GameObject* parent);
-    void Update();
+    void Update() override;
     float GetFps() const;
 
 private:
-
-    int m_frameCount{0};
-    float m_elapsedTime{0};
-    float m_fps;
+    float m_Timer{0};
+    const float m_Threshold{ 0.7f };
+    int m_FrameCount{0};
+    float m_ElapsedTime{0};
+    float m_Fps;
 };

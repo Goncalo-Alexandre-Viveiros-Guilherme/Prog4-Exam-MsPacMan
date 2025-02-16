@@ -1,7 +1,9 @@
+#include "GameObject.h"
+#include "GameObject.h"
+
 #include <string>
 #include "GameObject.h"
 
-#include "RenderComponent.h"
 #include "ResourceManager.h"
 #include "Transform.h"
 
@@ -24,9 +26,8 @@ void dae::GameObject::DeleteComponent(Component& componentToDelete)
 	}
 }
 
-dae::GameObject::GameObject(std::string name) : m_Name(name)	
+dae::GameObject::GameObject(std::string name) : m_IsEnabled(true), m_Name(name)
 {
-	AddComponent<Transform>();
 }
 
 dae::GameObject::~GameObject()
@@ -39,21 +40,30 @@ dae::GameObject::~GameObject()
 	m_Components.clear();
 };
 
-void dae::GameObject::Update(){}
+void dae::GameObject::Update() 
+{
+	for (const auto& component : m_Components)
+	{
+		component->Update();
+	}
+}
 
 void dae::GameObject::Render() const
 {
-	if (HasComponent<RenderComponent>())
-		if (GetComponent<RenderComponent>().GetIsEnabled() == true)
-		{
-			const auto& pos = GetComponent<Transform>().GetPosition();
-			GetComponent<RenderComponent>().Render(pos.x, pos.y);
-		}
+	for (const auto& component : m_Components)
+	{
+		component->Render();
+	}
 }
 
-void dae::GameObject::SetPosition(float x, float y) const
+void dae::GameObject::SetPosition(float x, float y)
 {
-	GetComponent<Transform>().SetPosition(x, y, 0.0f);
+	m_Transform.SetPosition(x, y, 0.0f);
+}
+
+const glm::vec3& dae::GameObject::GetPosition() const
+{
+	return m_Transform.GetPosition();
 }
 
 void dae::GameObject::SetToDestroy()

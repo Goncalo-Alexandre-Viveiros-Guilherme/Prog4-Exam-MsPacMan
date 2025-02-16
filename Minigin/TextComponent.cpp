@@ -3,6 +3,7 @@
 #include <stdexcept>
 
 #include "Font.h"
+#include "GameObject.h"
 #include "Renderer.h"
 #include "SDL_pixels.h"
 #include "SDL_ttf.h"
@@ -30,6 +31,11 @@ void TextComponent::Update()
 	}
 	SDL_FreeSurface(surf);
 	m_textTexture = std::make_shared<dae::Texture2D>(texture);
+}
+
+void TextComponent::Render()
+{
+	dae::Renderer::GetInstance().RenderTexture(*m_textTexture, m_Parent->GetPosition().x, m_Parent->GetPosition().y);
 }
 
 void TextComponent::SetText(const std::string& text)

@@ -15,6 +15,7 @@ public:
 	explicit TextComponent(const dae::GameObject* parent, const std::string& text, std::shared_ptr<dae::Font> font);
 
 	void Update();
+	void Render() override;
 	void SetText(const std::string& text);
 	std::shared_ptr<dae::Texture2D> GetTex();
 

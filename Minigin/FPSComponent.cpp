@@ -1,34 +1,44 @@
 #include "FPSComponent.h"
 
-#include <chrono>
+#include "EngineTime.h"
+#include "GameObject.h"
+#include "TextComponent.h"
+#include <iomanip>
+#include <sstream>
 
-FPSComponent::FPSComponent(const dae::GameObject* parent): Component(parent), m_fps(0)
+FPSComponent::FPSComponent(const dae::GameObject* parent): Component(parent), m_Fps(0)
 {
 }
 
 
 void FPSComponent::Update()
 {
-    using namespace std::chrono;
-    static auto lastTime = high_resolution_clock::now();
-    const auto currentTime = high_resolution_clock::now();
-    const float deltaTime = duration<float>(currentTime - lastTime).count();
-    lastTime = currentTime;
+	if (m_Timer >= m_Threshold)
+	{
+        m_Fps = 1 / Time::GetInstance().GetDeltaTime();
 
-    m_elapsedTime += deltaTime;
-    m_frameCount++;
+        if (m_Parent->HasComponent<TextComponent>())
+        {
+            std::ostringstream stream;
+            stream << std::fixed << std::setprecision(2) << m_Fps;
+            const std::string fpsString = stream.str();
 
-    if (m_elapsedTime >= 1.0f)
-    {
-        m_fps = m_frameCount / m_elapsedTime;
-        m_frameCount = 0;
-        m_elapsedTime = 0.0f;
-    }
+            m_Parent->GetComponent<TextComponent>().SetText(fpsString);
+        }
+
+        m_Timer = 0;
+	}
+
+	else
+	{
+        m_Timer += Time::GetInstance().GetDeltaTime();
+	}
+
 }
 
 float FPSComponent::GetFps() const
 {
-    return m_fps;
+    return m_Fps;
 }
 
 
