@@ -1,8 +1,10 @@
 #include "Component.h"
 
+#include <stdexcept>
 
-Component::Component(const dae::GameObject* parent) // Ensure this matches the argument type in AddComponent
-    : m_Parent(parent), m_IsEnabled(true)
+
+Component::Component(const dae::GameObject& parent) 
+    : m_Parent(&parent), m_IsEnabled(true)
 {
 }
 
@@ -12,6 +14,11 @@ void Component::Update()
 
 void Component::Render()
 {
+}
+
+const dae::GameObject* Component::GetParent() const
+{
+	return m_Parent;
 }
 
 void Component::SetToDestroy()

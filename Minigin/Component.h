@@ -9,7 +9,7 @@ namespace dae
 class Component
 {
 public:
-	explicit Component(const dae::GameObject* parent); 
+	explicit Component(const dae::GameObject& parent); 
     virtual ~Component() = default;
     Component(const Component& other) = delete;
     Component(Component&& other) = delete;
@@ -18,15 +18,17 @@ public:
 
     virtual void Update();
     virtual void Render();
+	const dae::GameObject* GetParent() const;
     void SetToDestroy();
     void SetIsEnabled(bool value);
     bool GetIsEnabled() const;
     bool GetIsMarkedForDestruction() const;
 
 protected:
-    const dae::GameObject* m_Parent; 
     bool m_IsEnabled;
     bool m_IsMarkedForDestruction{ false };
+private:
+    const dae::GameObject* m_Parent;
 };
 
 

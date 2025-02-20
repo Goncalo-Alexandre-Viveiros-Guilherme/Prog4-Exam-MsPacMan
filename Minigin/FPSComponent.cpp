@@ -6,7 +6,7 @@
 #include <iomanip>
 #include <sstream>
 
-FPSComponent::FPSComponent(const dae::GameObject* parent): Component(parent), m_Fps(0)
+FPSComponent::FPSComponent(const dae::GameObject& parent): Component(parent), m_Fps(0)
 {
 }
 
@@ -17,13 +17,13 @@ void FPSComponent::Update()
 	{
         m_Fps = 1 / Time::GetInstance().GetDeltaTime();
 
-        if (m_Parent->HasComponent<TextComponent>())
+        if (GetParent()->HasComponent<TextComponent>())
         {
             std::ostringstream stream;
             stream << std::fixed << std::setprecision(2) << m_Fps;
             const std::string fpsString = stream.str();
 
-            m_Parent->GetComponent<TextComponent>().SetText(fpsString);
+            GetParent()->GetComponent<TextComponent>().SetText(fpsString);
         }
 
         m_Timer = 0;

@@ -32,19 +32,19 @@ void load()
 	go = std::make_shared<dae::GameObject>("LogoGOBJ");
 	go->AddComponent<ImageComponent>();
 	go->GetComponent<ImageComponent>().SetTexture("logo.tga");
-	go->SetPosition(216, 180);
+	go->SetLocalPosition(216, 180);
 	scene.Add(go);
 
 	go = std::make_shared<dae::GameObject>("TextGOBJ");
 	auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 36);
 	go->AddComponent<TextComponent>("Programming 4 Assignment", font);
-	go->SetPosition(80, 20);
+	go->SetLocalPosition(80, 20);
 	scene.Add(go);
 
 	go = std::make_shared<dae::GameObject>("FPSGOBJ");
 	go->AddComponent<TextComponent>("0", font);
 	go->AddComponent<FPSComponent>();
-	go->SetPosition(0, 0);
+	go->SetLocalPosition(0, 0);
 	scene.Add(go);
 }
 
