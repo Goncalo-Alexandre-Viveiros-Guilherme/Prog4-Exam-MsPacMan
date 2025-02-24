@@ -11,10 +11,7 @@ namespace dae
 	public:
 		explicit Minigin(const std::filesystem::path& dataPath);
 		~Minigin();
-		static void DeleteObjects(std::string sceneName);
 		void Run(const std::function<void()>& load);
-		void Fixed_update();
-		static void Update();
 		void RunOneFrame();
 
 		Minigin(const Minigin& other) = delete;

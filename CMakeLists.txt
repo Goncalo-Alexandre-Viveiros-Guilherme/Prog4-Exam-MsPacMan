@@ -38,11 +38,11 @@ add_executable(${TARGET_NAME} ${TARGET_PARAM}
   Minigin/Texture2D.h
   Minigin/Transform.cpp
   Minigin/Transform.h
- Minigin/Component.cpp 
- Minigin/TextComponent.cpp
- Minigin/ImageComponent.cpp
- Minigin/FPSComponent.cpp
- Minigin/EngineTime.cpp)
+ Minigin/Components/Component.cpp 
+ Minigin/Components/TextComponent.cpp
+ Minigin/Components/ImageComponent.cpp
+ Minigin/Components/FPSComponent.cpp
+ Minigin/EngineTime.cpp "Minigin/Components/RotatorComponent.cpp")
 
 # enable c++20 features
 target_compile_features(${TARGET_NAME} PUBLIC cxx_std_20)
@@ -184,6 +184,7 @@ endif()
 
 target_include_directories(${TARGET_NAME} PRIVATE
   ${CMAKE_SOURCE_DIR}/Minigin/
+  ${CMAKE_SOURCE_DIR}/Minigin/Components/
   ${glm_SOURCE_DIR}
 )
 

@@ -3,7 +3,7 @@
 #include <stdexcept>
 
 
-Component::Component(const dae::GameObject& parent) 
+Component::Component(dae::GameObject& parent) 
     : m_Parent(&parent), m_IsEnabled(true)
 {
 }
@@ -12,11 +12,15 @@ void Component::Update()
 {
 }
 
+void Component::FixedUpdate()
+{
+}
+
 void Component::Render()
 {
 }
 
-const dae::GameObject* Component::GetParent() const
+dae::GameObject* Component::GetParent() const
 {
 	return m_Parent;
 }

@@ -103,31 +103,7 @@ dae::Minigin::~Minigin()
 	SDL_Quit();
 }
 
-void dae::Minigin::DeleteObjects(std::string sceneName)
-{
-	int idxObj{ 0 };
-	
-	for (auto& gameOBJ : SceneManager::GetInstance().FindSceneByName(sceneName)->GetGameObjects())
-	{
-        if (gameOBJ->GetIsMarkedForDestruction())
-        {
-			auto& gameObjects = SceneManager::GetInstance().FindSceneByName(sceneName)->GetGameObjects();
-			gameObjects.erase(gameObjects.begin() + idxObj);
 
-			break;
-        }
-
-		for (const auto& component : gameOBJ->GetAllComponents())
-		{
-			if (component->GetIsMarkedForDestruction())
-			{
-				gameOBJ->DeleteComponent(*component);
-			}
-		}
-
-		idxObj++;
-	}
-}
 
 void dae::Minigin::Run(const std::function<void()>& load)
 {
@@ -144,32 +120,22 @@ void dae::Minigin::Run(const std::function<void()>& load)
 #endif
 }
 
-void dae::Minigin::Fixed_update()
-{
-}
-
-void dae::Minigin::Update()
-{
-
-}
 
 void dae::Minigin::RunOneFrame()
 {
 	Time::GetInstance().Update();
 	
 	m_Lag += Time::GetInstance().GetDeltaTime();
-	Update();
 	m_quit = !InputManager::GetInstance().ProcessInput();
 	auto const fixedTimeStep = Time::GetInstance().GetFixedDeltaTime();
 	while (m_Lag >= fixedTimeStep)
 	{
-		Fixed_update();
+		SceneManager::GetInstance().FixedUpdate();
 		m_Lag -= fixedTimeStep;
 	}
 	SceneManager::GetInstance().Update();
 	Renderer::GetInstance().Render();
 
-	DeleteObjects("Demo");
-	
+	SceneManager::GetInstance().DeleteObjects();
 	std::this_thread::sleep_for(Time::GetInstance().SleepDuration());
 }

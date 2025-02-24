@@ -1,8 +1,6 @@
 #include "GameObject.h"
-#include "GameObject.h"
 
 #include <string>
-#include "GameObject.h"
 
 #include "ResourceManager.h"
 #include "Transform.h"
@@ -41,6 +39,11 @@ void dae::GameObject::SetParent(GameObject* parent, bool keepWorldPosition)
 	if (m_Parent) m_Parent->RemoveChild(this);
 	m_Parent = parent;
 	if (m_Parent) m_Parent->AddChild(this);
+}
+
+std::vector<dae::GameObject*>& dae::GameObject::GetGameObjectChildren()
+{
+	return m_Children;
 }
 
 dae::GameObject::GameObject(std::string name) : m_IsEnabled(true), m_Parent(nullptr), m_Name(name)
@@ -87,13 +90,28 @@ bool dae::GameObject::IsChild(GameObject* child) const
 void dae::GameObject::SetPositionDirty()
 {
 	m_IsPositionDirty = true;
+
+	for (auto& child: m_Children)
+	{
+		child->SetPositionDirty();
+	}
 };
 
-void dae::GameObject::Update() const
+void dae::GameObject::Update() 
 {
-	for (const auto& component : m_Components)
+	for (auto& component : m_Components)
 	{
 		component->Update();
+	}
+
+	std::erase_if(m_Components, [](const Component* comp) { return comp->GetIsMarkedForDestruction(); });
+}
+
+void dae::GameObject::FixedUpdate()
+{
+	for (auto& component : m_Components)
+	{
+		component->FixedUpdate();
 	}
 }
 
@@ -105,7 +123,7 @@ void dae::GameObject::Render() const
 	}
 }
 
-void dae::GameObject::SetLocalPosition(float x, float y)
+void dae::GameObject::SetLocalPosition(const float x, const float y)
 {
 	m_Transform.SetLocalPosition(x, y, 0.0f);
 	SetPositionDirty();
@@ -145,6 +163,11 @@ const glm::vec3& dae::GameObject::GetWorldPosition()
 void dae::GameObject::SetToDestroy()
 {
 	m_IsMarkedForDestruction = true;
+
+	for (auto& child : m_Children)
+	{
+		child->SetToDestroy();
+	}
 }
 
 bool dae::GameObject::GetIsMarkedForDestruction() const

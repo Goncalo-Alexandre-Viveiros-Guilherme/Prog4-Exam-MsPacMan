@@ -17,6 +17,7 @@
 #include "FPSComponent.h"
 #include "GameObject.h"
 #include "ImageComponent.h"
+#include "RotatorComponent.h"
 #include "TextComponent.h"
 namespace fs = std::filesystem;
 
@@ -46,6 +47,20 @@ void load()
 	go->AddComponent<FPSComponent>();
 	go->SetLocalPosition(0, 0);
 	scene.Add(go);
+
+	go = std::make_shared<dae::GameObject>("PacMan");
+	go->AddComponent<ImageComponent>();
+	go->GetComponent<ImageComponent>().SetTexture("PacMan.png");
+	go->SetLocalPosition(250, 250);
+	go->AddComponent<RotatorComponent>(3.f,50.f);
+	scene.Add(go);
+
+	auto fo = std::make_shared<dae::GameObject>("MsPacMan");
+	fo->AddComponent<ImageComponent>();
+	fo->GetComponent<ImageComponent>().SetTexture("MsPacMan.png");
+	fo->AddComponent<RotatorComponent>(12.f,50.f);
+	fo->SetParent(go.get(), false);
+	scene.Add(fo);
 }
 
 int main(int, char*[]) {

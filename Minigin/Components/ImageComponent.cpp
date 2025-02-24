@@ -4,13 +4,13 @@
 #include "Renderer.h"
 #include "ResourceManager.h"
 
-ImageComponent::ImageComponent(const dae::GameObject& parent): Component(parent)
+ImageComponent::ImageComponent(dae::GameObject& parent): Component(parent)
 {
 }
 
 void ImageComponent::Render()
 {
-	dae::Renderer::GetInstance().RenderTexture(*m_texture, GetParent()->GetLocalPosition().x, GetParent()->GetLocalPosition().y);
+	dae::Renderer::GetInstance().RenderTexture(*m_texture, GetParent()->GetWorldPosition().x, GetParent()->GetWorldPosition().y);
 }
 
 void ImageComponent::SetTexture(const std::string& filename)

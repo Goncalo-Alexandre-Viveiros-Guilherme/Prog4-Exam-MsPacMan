@@ -6,7 +6,7 @@
 #include <iomanip>
 #include <sstream>
 
-FPSComponent::FPSComponent(const dae::GameObject& parent): Component(parent), m_Fps(0)
+FPSComponent::FPSComponent(dae::GameObject& parent): Component(parent), m_Fps(0)
 {
 }
 
@@ -15,7 +15,7 @@ void FPSComponent::Update()
 {
 	if (m_Timer >= m_Threshold)
 	{
-        m_Fps = 1 / Time::GetInstance().GetDeltaTime();
+        m_Fps =  1 / Time::GetInstance().GetDeltaTime();
 
         if (GetParent()->HasComponent<TextComponent>())
         {

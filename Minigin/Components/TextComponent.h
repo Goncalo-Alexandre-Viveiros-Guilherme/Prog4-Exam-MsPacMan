@@ -12,7 +12,7 @@ namespace dae
 class TextComponent : public Component
 {
 public:
-	explicit TextComponent(const dae::GameObject& parent, const std::string& text, std::shared_ptr<dae::Font> font);
+	explicit TextComponent(dae::GameObject& parent, const std::string& text, std::shared_ptr<dae::Font> font);
 
 	void Update();
 	void Render() override;

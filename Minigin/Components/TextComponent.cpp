@@ -10,7 +10,7 @@
 #include "Texture2D.h"
 
 
-TextComponent::TextComponent(const dae::GameObject& parent, const std::string& text, std::shared_ptr<dae::Font> font)
+TextComponent::TextComponent(dae::GameObject& parent, const std::string& text, std::shared_ptr<dae::Font> font)
 	: Component(parent), m_text(text), m_font(font)
 {
 	
@@ -35,7 +35,7 @@ void TextComponent::Update()
 
 void TextComponent::Render()
 {
-	dae::Renderer::GetInstance().RenderTexture(*m_textTexture, GetParent()->GetLocalPosition().x, GetParent()->GetLocalPosition().y);
+	dae::Renderer::GetInstance().RenderTexture(*m_textTexture, GetParent()->GetWorldPosition().x, GetParent()->GetWorldPosition().y);
 }
 
 void TextComponent::SetText(const std::string& text)

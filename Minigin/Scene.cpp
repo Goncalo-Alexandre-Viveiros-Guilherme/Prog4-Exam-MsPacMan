@@ -69,6 +69,19 @@ void Scene::Update()
 	}
 }
 
+void Scene::FixedUpdate()
+{
+	for (auto& object : m_objects)
+	{
+		object->FixedUpdate();
+	}
+}
+
+void Scene::DeleteObjects()
+{
+	std::erase_if(m_objects, [](const std::shared_ptr<GameObject>& o) { return o->GetIsMarkedForDestruction(); });
+}
+
 void Scene::Render() const
 {
 	for (const auto& object : m_objects)

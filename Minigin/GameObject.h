@@ -3,8 +3,8 @@
 #include <memory>
 #include <stdexcept>
 #include <vector>
-#include "Component.h"
 #include "Transform.h"
+#include "Component.h"
 
 
 namespace dae
@@ -13,7 +13,8 @@ namespace dae
 	{
 		
 	public:
-		void Update() const;
+		void Update();
+		void FixedUpdate();
 		void Render() const;
 
 		void SetLocalPosition(float x, float y);
@@ -80,7 +81,8 @@ namespace dae
 		std::string GetName();
 		void DeleteComponent(Component& componentToDelete);
 		void SetParent(GameObject* parent,bool keepWorldPosition);
-		
+		std::vector<GameObject*>& GetGameObjectChildren();
+
 
 		GameObject(std::string name);
 		~GameObject();
