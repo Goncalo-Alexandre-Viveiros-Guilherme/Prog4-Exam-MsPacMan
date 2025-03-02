@@ -14,6 +14,7 @@
 
 #include <filesystem>
 
+#include "GraphCacheComponent.h"
 #include "FPSComponent.h"
 #include "GameObject.h"
 #include "ImageComponent.h"
@@ -53,6 +54,7 @@ void load()
 	go->GetComponent<ImageComponent>().SetTexture("PacMan.png");
 	go->SetLocalPosition(250, 250);
 	go->AddComponent<RotatorComponent>(3.f,50.f);
+	go->AddComponent<GraphCacheComponent>();
 	scene.Add(go);
 
 	auto fo = std::make_shared<dae::GameObject>("MsPacMan");

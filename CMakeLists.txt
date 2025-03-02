@@ -42,7 +42,7 @@ add_executable(${TARGET_NAME} ${TARGET_PARAM}
  Minigin/Components/TextComponent.cpp
  Minigin/Components/ImageComponent.cpp
  Minigin/Components/FPSComponent.cpp
- Minigin/EngineTime.cpp "Minigin/Components/RotatorComponent.cpp")
+ Minigin/EngineTime.cpp "Minigin/Components/RotatorComponent.cpp" "Minigin/Components/GraphCacheComponent.cpp")
 
 # enable c++20 features
 target_compile_features(${TARGET_NAME} PUBLIC cxx_std_20)
@@ -140,7 +140,7 @@ if (WIN32)
     ${SDL2_TTF_LIBRARIES} 
     ${VLD_LIBRARY}
   )
-
+   
 elseif(NOT EMSCRIPTEN)
 
   FetchContent_Declare(
@@ -180,7 +180,60 @@ elseif(NOT EMSCRIPTEN)
   target_link_libraries("${TARGET_NAME}" PUBLIC 
     SDL2::SDL2main SDL2::SDL2 SDL2_image::SDL2_image SDL2_ttf::SDL2_ttf
   )
+
+ 
 endif()
+
+
+
+############################################################################### ImGui
+
+FetchContent_Declare(
+  imgui
+  GIT_REPOSITORY https://github.com/ocornut/imgui.git
+  GIT_TAG v1.91.8
+)
+
+FetchContent_MakeAvailable(imgui)
+
+# Add ImGui
+add_library(imgui_lib STATIC
+  ${imgui_SOURCE_DIR}/imgui.cpp
+  ${imgui_SOURCE_DIR}/imgui_draw.cpp
+  ${imgui_SOURCE_DIR}/imgui_tables.cpp
+  ${imgui_SOURCE_DIR}/imgui_widgets.cpp
+  ${imgui_SOURCE_DIR}/imgui_demo.cpp    
+  ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp
+  ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
+)
+
+target_link_libraries(${TARGET_NAME} PRIVATE imgui_lib)
+target_include_directories(imgui_lib PUBLIC ${imgui_SOURCE_DIR})
+target_include_directories(imgui_lib PRIVATE ${SDL2_INCLUDE_DIR})
+
+FetchContent_Declare(
+  implot
+  GIT_REPOSITORY https://github.com/epezent/implot.git
+  GIT_TAG v0.16
+)
+
+FetchContent_MakeAvailable(implot)
+
+#Add Im Plot
+add_library(implot_lib STATIC
+  ${implot_SOURCE_DIR}/implot.cpp
+  ${implot_SOURCE_DIR}/implot_items.cpp
+)
+
+target_include_directories(implot_lib PUBLIC ${implot_SOURCE_DIR} ${imgui_SOURCE_DIR})
+target_link_libraries(${TARGET_NAME} PRIVATE implot_lib)
+ ########################################################################Imgui
+    target_link_libraries(imgui_lib PRIVATE ${SDL2_LIBRARIES})
+
+###############################################################################
+
+
+
 
 target_include_directories(${TARGET_NAME} PRIVATE
   ${CMAKE_SOURCE_DIR}/Minigin/

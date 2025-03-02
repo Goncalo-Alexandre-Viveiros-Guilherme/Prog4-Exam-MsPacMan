@@ -81,6 +81,7 @@ namespace dae
 		std::string GetName();
 		void DeleteComponent(Component& componentToDelete);
 		void SetParent(GameObject* parent,bool keepWorldPosition);
+		bool HasParent() const;
 		std::vector<GameObject*>& GetGameObjectChildren();
 
 

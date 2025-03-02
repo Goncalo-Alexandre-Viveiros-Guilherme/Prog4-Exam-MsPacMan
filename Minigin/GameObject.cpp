@@ -41,6 +41,13 @@ void dae::GameObject::SetParent(GameObject* parent, bool keepWorldPosition)
 	if (m_Parent) m_Parent->AddChild(this);
 }
 
+bool dae::GameObject::HasParent() const
+{
+	if (m_Parent == nullptr) return false;
+
+	return true;
+}
+
 std::vector<dae::GameObject*>& dae::GameObject::GetGameObjectChildren()
 {
 	return m_Children;
@@ -62,23 +69,11 @@ dae::GameObject::~GameObject()
 
 void dae::GameObject::AddChild(GameObject* child)
 {
-	if (child == nullptr)
-		return;
-	if (child->m_Parent == this)
-		return;
-	if (child->m_Parent)
-		child->m_Parent->RemoveChild(child);
-	child->m_Parent = this;
 	m_Children.push_back(child);
 }
 
 void dae::GameObject::RemoveChild(GameObject* child)
 {
-	if (child == nullptr)
-		return;
-	if (child->m_Parent != this)
-		return;
-	child->m_Parent = nullptr;
 	m_Children.erase(std::ranges::remove(m_Children, child).begin(), m_Children.end());
 }
 
