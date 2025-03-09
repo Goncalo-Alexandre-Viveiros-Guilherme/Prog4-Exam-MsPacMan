@@ -1,10 +1,70 @@
 
 #include "InputManager.h"
 #include <backends/imgui_impl_sdl2.h>
+#include <SDL.h>
+#include <Xinput.h>
 
+namespace dae
+{
+    struct InputMappingImpl
+    {
+        std::unique_ptr<Command> command;
+        std::vector<SDL_Scancode> SDLkeys;
+        std::vector<int> GamepadButtons;
+        KeyState actionKeyState{ None };
+        KeyState currentKeyState{ None };
 
+        InputMappingImpl(std::unique_ptr<Command> cmd,
+            std::initializer_list<SDL_Scancode> keys,
+            std::initializer_list<int> buttons = {},
+            KeyState keystate = KeyState::Down) :
+            command(std::move(cmd)), SDLkeys(keys), GamepadButtons(buttons), actionKeyState(keystate) {
+        };
+
+        void DoSetKeyState(bool isDown)
+        {
+            if (actionKeyState == None)
+            {
+                currentKeyState = None;
+                return;
+            }
+
+            if (currentKeyState == Released) currentKeyState = Up;
+            if (currentKeyState == Pressed) currentKeyState = Down;
+
+            if (currentKeyState == None)
+            {
+                currentKeyState = isDown ? Down : Up;
+            }
+
+            if (currentKeyState == Down)
+            {
+                if (!isDown)
+                {
+                    currentKeyState = Released;
+                }
+            }
+            else if (currentKeyState == Up)
+            {
+                if (isDown) currentKeyState = Pressed;
+            }
+        }
+
+        std::vector<SDL_Scancode> DoGetSDLKeys() { return SDLkeys; }
+
+        std::vector<int> DoGetGamepadButtons() { return GamepadButtons; }
+
+        Command* DoGetCommand() { return command.get(); }
+
+        bool DoCurrentKeyStateIsActionState()
+        {
+            return currentKeyState == actionKeyState;
+        }
+    };
+}
 bool dae::InputManager::ProcessInput()
 {
+
 	SDL_Event e;
 	while (SDL_PollEvent(&e)) 
 	{
@@ -32,7 +92,7 @@ bool dae::InputManager::ProcessInput()
     {
         bool actionTriggered = false;
         // checks for keyboard
-        for (auto& key : inputMapping->SDLkeys)
+        for (auto& key : inputMapping->GetSDLKeys())
         {
             if (keyState[key])
             {
@@ -44,7 +104,7 @@ bool dae::InputManager::ProcessInput()
         // check controller
         if (controllerConnected)
         {
-            for (auto& button : inputMapping->GamepadButtons)
+            for (auto& button : inputMapping->GetGamepadButtons())
             {
                 if (controllerState.Gamepad.wButtons & button)
                 {
@@ -58,7 +118,11 @@ bool dae::InputManager::ProcessInput()
         // Execute if the key state matches the action state
         if (inputMapping->CurrentKeyStateIsActionState())
         {
-            inputMapping->command->execute();
+            if (inputMapping->GetCommand() != nullptr) 
+            {
+                inputMapping->GetCommand()->execute();
+            }
+
         }
 
         // else reset it
@@ -70,4 +134,39 @@ bool dae::InputManager::ProcessInput()
 
 
 	return true;
+}
+
+dae::InputMapping::InputMapping(std::unique_ptr<Command> cmd, std::initializer_list<SDL_Scancode> keys, std::initializer_list<int> buttons, KeyState keystate)
+{
+    m_pIMapImpl = new InputMappingImpl(std::move(cmd), keys, buttons, keystate);
+}
+
+dae::InputMapping::~InputMapping()
+{
+    delete m_pIMapImpl;
+}
+
+void dae::InputMapping::SetKeyState(bool isDown)
+{
+   m_pIMapImpl->DoSetKeyState(isDown);
+}
+
+std::vector<SDL_Scancode> dae::InputMapping::GetSDLKeys()
+{
+    return m_pIMapImpl->DoGetSDLKeys();
+}
+
+std::vector<int> dae::InputMapping::GetGamepadButtons()
+{
+    return m_pIMapImpl->DoGetGamepadButtons();
+}
+
+Command* dae::InputMapping::GetCommand()
+{
+    return m_pIMapImpl->DoGetCommand();
+}
+
+bool dae::InputMapping::CurrentKeyStateIsActionState()
+{
+    return m_pIMapImpl->DoCurrentKeyStateIsActionState();
 }

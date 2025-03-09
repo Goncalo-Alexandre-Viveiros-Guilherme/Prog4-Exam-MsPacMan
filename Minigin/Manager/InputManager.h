@@ -6,67 +6,58 @@
 #include <SDL.h>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-#include <Xinput.h>
+
+enum KeyState
+{
+	Pressed,
+	Up,
+	Down,
+	Released,
+	None
+};
+
+enum GamepadButtons
+{
+	GamePad_DPadUp = 0x0001,
+	GamePad_DPadDown = 0x0002,
+	GamePad_DPadLeft = 0x0004,
+	GamePad_DPadRight = 0x0008,
+	GamePad_Start = 0x0010,
+	GamePad_Back = 0x0020,
+	GamePad_LeftThumb = 0x0040,
+	GamePad_RightThumb = 0x0080,
+	GamePad_LeftShoulder = 0x0100,
+	GamePad_RightShoulder = 0x0200,
+	GamePad_A = 0x1000,
+	GamePad_B = 0x2000,
+	GamePad_X = 0x4000,
+	GamePad_Y = 0x8000
+};
 
 namespace dae
 {
-	enum KeyState
-	{
-		Pressed,
-		Up,
-		Down,
-		Released,
-		None
-	};
+	struct InputMappingImpl;
 
 	struct InputMapping
 	{
-		std::unique_ptr<Command> command; 
-		std::vector<SDL_Scancode> SDLkeys;
-		std::vector<int> GamepadButtons;
-		KeyState actionKeyState{None};
-		KeyState currentKeyState{None}; 
+	private:
+		InputMappingImpl* m_pIMapImpl;
 
+	public:
 		InputMapping(std::unique_ptr<Command> cmd,
 			std::initializer_list<SDL_Scancode> keys,
 			std::initializer_list<int> buttons = {},
-			KeyState keystate = KeyState::Down)
-			: command(std::move(cmd)), SDLkeys(keys), GamepadButtons(buttons),
-			actionKeyState(keystate){}
+			KeyState keystate = KeyState::Down);
 
-		void SetKeyState(bool isDown)
-		{
-			if (actionKeyState == None)
-			{
-				currentKeyState = None;
-				return;
-			}
+		~InputMapping(); 
 
-			if (currentKeyState == Released) currentKeyState = Up;
-			if (currentKeyState == Pressed) currentKeyState = Down;
+		void SetKeyState(bool isDown);
 
-			if (currentKeyState == None)
-			{
-				currentKeyState = isDown ? Down : Up;
-			}
+		std::vector<SDL_Scancode> GetSDLKeys();
+		std::vector<int> GetGamepadButtons();
+		Command* GetCommand();
 
-			if (currentKeyState == Down)
-			{
-				if (!isDown)
-				{
-					currentKeyState = Released;
-				}
-			}
-			else if (currentKeyState == Up)
-			{
-				if (isDown) currentKeyState = Pressed; 
-			}
-		}
-
-		bool CurrentKeyStateIsActionState()
-		{
-			return currentKeyState == actionKeyState;
-		}
+		bool CurrentKeyStateIsActionState();
 	};
 
 	class InputManager final : public Singleton<InputManager>

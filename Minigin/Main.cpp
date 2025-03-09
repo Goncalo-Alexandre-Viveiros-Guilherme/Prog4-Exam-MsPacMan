@@ -57,10 +57,10 @@ void load()
 	go->SetLocalPosition(250, 250);
 	scene.Add(go);
 
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { XINPUT_GAMEPAD_DPAD_UP }, dae::KeyState::Down, 0.f, -500.0f, go.get());
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { XINPUT_GAMEPAD_DPAD_DOWN }, dae::KeyState::Down, 0.f, 500.0f,go.get());
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { XINPUT_GAMEPAD_DPAD_LEFT }, dae::KeyState::Down, -500.0f, 0.f,go.get());
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { XINPUT_GAMEPAD_DPAD_RIGHT }, dae::KeyState::Down, 500.0f, 0.f,go.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadUp },KeyState::Down, 0.f, -500.0f, go.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadDown }, KeyState::Down, 0.f, 500.0f,go.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadLeft }, KeyState::Down, -500.0f, 0.f,go.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadRight }, KeyState::Down, 500.0f, 0.f,go.get());
 
 	go = std::make_shared<dae::GameObject>("MsPacMan");
 	go->AddComponent<ImageComponent>();
@@ -68,10 +68,10 @@ void load()
 	go->GetComponent<ImageComponent>().SetTexture("MsPacMan.png"); 
 	scene.Add(go);
 
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_W}, {}, dae::KeyState::Down,0.f, -250.0f,go.get());
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_S}, {}, dae::KeyState::Down,0.f, 250.0f,go.get());
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_A}, {}, dae::KeyState::Down,-250.0f, 0.f,go.get());
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_D}, {}, dae::KeyState::Down,250.0f, 0.f,go.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_W}, {}, KeyState::Down,0.f, -250.0f,go.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_S}, {}, KeyState::Down,0.f, 250.0f,go.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_A}, {}, KeyState::Down,-250.0f, 0.f,go.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_D}, {}, KeyState::Down,250.0f, 0.f,go.get());
 
 }
 
