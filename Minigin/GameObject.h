@@ -84,7 +84,6 @@ namespace dae
 		bool HasParent() const;
 		std::vector<GameObject*>& GetGameObjectChildren();
 
-
 		GameObject(std::string name);
 		~GameObject();
 		GameObject(const GameObject& other) = delete;

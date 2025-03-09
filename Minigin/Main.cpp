@@ -20,6 +20,8 @@
 #include "ImageComponent.h"
 #include "RotatorComponent.h"
 #include "TextComponent.h"
+#include <Commands.h>
+#include "InputManager.h"
 namespace fs = std::filesystem;
 
 void load()
@@ -53,16 +55,20 @@ void load()
 	go->AddComponent<ImageComponent>();
 	go->GetComponent<ImageComponent>().SetTexture("PacMan.png");
 	go->SetLocalPosition(250, 250);
-	go->AddComponent<RotatorComponent>(3.f,50.f);
-	go->AddComponent<GraphCacheComponent>();
 	scene.Add(go);
 
-	auto fo = std::make_shared<dae::GameObject>("MsPacMan");
-	fo->AddComponent<ImageComponent>();
-	fo->GetComponent<ImageComponent>().SetTexture("MsPacMan.png");
-	fo->AddComponent<RotatorComponent>(12.f,50.f);
-	fo->SetParent(go.get(), false);
-	scene.Add(fo);
+	go = std::make_shared<dae::GameObject>("MsPacMan");
+	go->AddComponent<ImageComponent>();
+	go->SetLocalPosition(300, 250);
+	go->GetComponent<ImageComponent>().SetTexture("MsPacMan.png"); 
+	scene.Add(go);
+
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({ SDL_SCANCODE_W }, dae::KeyState::Pressed, 0.f,-500.0f);
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({ SDL_SCANCODE_S }, dae::KeyState::Pressed, 0.f,500.0f);
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({ SDL_SCANCODE_A }, dae::KeyState::Pressed, -500.0f, 0.f);
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({ SDL_SCANCODE_D }, dae::KeyState::Pressed, 500.0f, 0.f);
+
+	dae::InputManager::GetInstance().AddPlayer(go.get());
 }
 
 int main(int, char*[]) {

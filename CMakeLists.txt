@@ -16,33 +16,27 @@ endif()
 # list source files here
 add_executable(${TARGET_NAME} ${TARGET_PARAM}
   Minigin/Font.cpp
-  Minigin/Font.h
   Minigin/GameObject.cpp
-  Minigin/GameObject.h
-  Minigin/InputManager.cpp
-  Minigin/InputManager.h
   Minigin/Main.cpp
   Minigin/Minigin.cpp
-  Minigin/Minigin.h
   Minigin/Renderer.cpp
-  Minigin/Renderer.h
-  Minigin/ResourceManager.cpp
-  Minigin/ResourceManager.h
   Minigin/Scene.cpp
-  Minigin/Scene.h
-  Minigin/SceneManager.cpp
-  Minigin/SceneManager.h
-  
-  
   Minigin/Texture2D.cpp
-  Minigin/Texture2D.h
   Minigin/Transform.cpp
-  Minigin/Transform.h
+  Minigin/EngineTime.cpp 
+  Minigin/Commands.cpp
+
+  Minigin/Manager/InputManager.cpp
+  Minigin/Manager/ResourceManager.cpp
+  Minigin/Manager/SceneManager.cpp
+  
  Minigin/Components/Component.cpp 
  Minigin/Components/TextComponent.cpp
  Minigin/Components/ImageComponent.cpp
  Minigin/Components/FPSComponent.cpp
- Minigin/EngineTime.cpp "Minigin/Components/RotatorComponent.cpp" "Minigin/Components/GraphCacheComponent.cpp")
+ Minigin/Components/RotatorComponent.cpp 
+ Minigin/Components/GraphCacheComponent.cpp 
+)
 
 # enable c++20 features
 target_compile_features(${TARGET_NAME} PUBLIC cxx_std_20)
@@ -204,8 +198,7 @@ add_library(imgui_lib STATIC
   ${imgui_SOURCE_DIR}/imgui_widgets.cpp
   ${imgui_SOURCE_DIR}/imgui_demo.cpp    
   ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp
-  ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
-)
+  ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp)
 
 target_link_libraries(${TARGET_NAME} PRIVATE imgui_lib)
 target_include_directories(imgui_lib PUBLIC ${imgui_SOURCE_DIR})
@@ -222,8 +215,7 @@ FetchContent_MakeAvailable(implot)
 #Add Im Plot
 add_library(implot_lib STATIC
   ${implot_SOURCE_DIR}/implot.cpp
-  ${implot_SOURCE_DIR}/implot_items.cpp
-)
+  ${implot_SOURCE_DIR}/implot_items.cpp)
 
 target_include_directories(implot_lib PUBLIC ${implot_SOURCE_DIR} ${imgui_SOURCE_DIR})
 target_link_libraries(${TARGET_NAME} PRIVATE implot_lib)
@@ -238,6 +230,7 @@ target_link_libraries(${TARGET_NAME} PRIVATE implot_lib)
 target_include_directories(${TARGET_NAME} PRIVATE
   ${CMAKE_SOURCE_DIR}/Minigin/
   ${CMAKE_SOURCE_DIR}/Minigin/Components/
+  ${CMAKE_SOURCE_DIR}/Minigin/Manager/
   ${glm_SOURCE_DIR}
 )
 

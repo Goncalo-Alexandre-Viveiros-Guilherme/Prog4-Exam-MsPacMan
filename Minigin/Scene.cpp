@@ -1,6 +1,6 @@
 #include "Scene.h"
 #include "GameObject.h"
-
+#include "InputManager.h"
 #include <algorithm>
 
 using namespace dae;
