@@ -23,18 +23,16 @@ namespace dae
 	{
 		std::unique_ptr<Command> command; 
 		std::vector<SDL_Scancode> SDLkeys;
-		std::vector<WORD> GamepadButtons;
+		std::vector<int> GamepadButtons;
 		KeyState actionKeyState{None};
-		KeyState currentKeyState{None};
-		int playerNumber; 
+		KeyState currentKeyState{None}; 
 
 		InputMapping(std::unique_ptr<Command> cmd,
 			std::initializer_list<SDL_Scancode> keys,
-			std::initializer_list<WORD> buttons = {},
-			KeyState keystate = KeyState::Down,
-			int playerNum = 0)
+			std::initializer_list<int> buttons = {},
+			KeyState keystate = KeyState::Down)
 			: command(std::move(cmd)), SDLkeys(keys), GamepadButtons(buttons),
-			actionKeyState(keystate), playerNumber(playerNum) {}
+			actionKeyState(keystate){}
 
 		void SetKeyState(bool isDown)
 		{
@@ -78,31 +76,16 @@ namespace dae
 
 		template <typename CommandType, typename... Args>
 		void AddInputMapping(std::initializer_list<SDL_Scancode> keys,
-			std::initializer_list<WORD> buttons = {},
+			std::initializer_list<int> buttons = {},
 			KeyState actionKeyState = KeyState::Down,
-			int playerNumber = 0,
 			Args&&... args)
 		{
 			m_InputMappings.emplace_back(
-				std::make_unique<InputMapping>(std::make_unique<CommandType>(std::forward<Args>(args)...), keys, buttons, actionKeyState, playerNumber)
+				std::make_unique<InputMapping>(std::make_unique<CommandType>(std::forward<Args>(args)...), keys, buttons, actionKeyState)
 			);
 		}
-
-		//Template which only takes keys and arguments as parameters for easier Input Binding
-		template <typename CommandType, typename... Args>
-		void AddInputMapping(std::initializer_list<SDL_Scancode> keys,
-			Args&&... args)
-		{
-			m_InputMappings.emplace_back(
-				std::make_unique<InputMapping>(std::make_unique<CommandType>(std::forward<Args>(args)...), keys)
-			);
-		}
-
-		void AddPlayer(GameObject* player,int plyrNr = 0);
 
 	private:
 		std::vector<std::unique_ptr<InputMapping>> m_InputMappings;
-		std::vector<GameObject*> m_Players;
-		std::vector<int> m_PlayerNr;
 	};
 }

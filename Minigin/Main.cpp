@@ -57,7 +57,10 @@ void load()
 	go->SetLocalPosition(250, 250);
 	scene.Add(go);
 
-	dae::InputManager::GetInstance().AddPlayer(go.get(),1);
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { XINPUT_GAMEPAD_DPAD_UP }, dae::KeyState::Down, 0.f, -500.0f, go.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { XINPUT_GAMEPAD_DPAD_DOWN }, dae::KeyState::Down, 0.f, 500.0f,go.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { XINPUT_GAMEPAD_DPAD_LEFT }, dae::KeyState::Down, -500.0f, 0.f,go.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { XINPUT_GAMEPAD_DPAD_RIGHT }, dae::KeyState::Down, 500.0f, 0.f,go.get());
 
 	go = std::make_shared<dae::GameObject>("MsPacMan");
 	go->AddComponent<ImageComponent>();
@@ -65,18 +68,11 @@ void load()
 	go->GetComponent<ImageComponent>().SetTexture("MsPacMan.png"); 
 	scene.Add(go);
 
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { XINPUT_GAMEPAD_DPAD_UP },dae::KeyState::Down,1 ,0.f, -500.0f);
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { XINPUT_GAMEPAD_DPAD_DOWN },dae::KeyState::Down,1 ,0.f, 500.0f);
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { XINPUT_GAMEPAD_DPAD_LEFT },dae::KeyState::Down,1 ,-500.0f, 0.f);
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { XINPUT_GAMEPAD_DPAD_RIGHT },dae::KeyState::Down,1 , 500.0f, 0.f);
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_W}, {}, dae::KeyState::Down,0.f, -250.0f,go.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_S}, {}, dae::KeyState::Down,0.f, 250.0f,go.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_A}, {}, dae::KeyState::Down,-250.0f, 0.f,go.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_D}, {}, dae::KeyState::Down,250.0f, 0.f,go.get());
 
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_W}, {}, dae::KeyState::Down, 0, 0.f, -250.0f);
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_S}, {}, dae::KeyState::Down, 0, 0.f, 250.0f);
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_A}, {}, dae::KeyState::Down, 0, -250.0f, 0.f);
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_D}, {}, dae::KeyState::Down, 0, 250.0f, 0.f);
-
-
-	dae::InputManager::GetInstance().AddPlayer(go.get());
 }
 
 int main(int, char*[]) {
