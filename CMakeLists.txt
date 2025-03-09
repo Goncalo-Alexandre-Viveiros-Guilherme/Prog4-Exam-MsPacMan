@@ -178,6 +178,11 @@ elseif(NOT EMSCRIPTEN)
  
 endif()
 
+# Link XInput for Windows
+if(WIN32)
+    target_link_libraries("${TARGET_NAME}" PRIVATE Xinput.lib)
+endif()
+
 
 
 ############################################################################### ImGui

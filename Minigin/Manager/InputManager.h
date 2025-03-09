@@ -4,6 +4,9 @@
 #include <vector>
 #include <memory>  
 #include <SDL.h>
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <Xinput.h>
 
 namespace dae
 {
@@ -20,12 +23,18 @@ namespace dae
 	{
 		std::unique_ptr<Command> command; 
 		std::vector<SDL_Scancode> SDLkeys;
+		std::vector<WORD> GamepadButtons;
 		KeyState actionKeyState{None};
 		KeyState currentKeyState{None};
+		int playerNumber; 
 
-		InputMapping(std::unique_ptr<Command> cmd, std::initializer_list<SDL_Scancode> keys, KeyState keystate = KeyState::Down)
-			: command(std::move(cmd)), SDLkeys(keys), actionKeyState(keystate) {
-		}
+		InputMapping(std::unique_ptr<Command> cmd,
+			std::initializer_list<SDL_Scancode> keys,
+			std::initializer_list<WORD> buttons = {},
+			KeyState keystate = KeyState::Down,
+			int playerNum = 0)
+			: command(std::move(cmd)), SDLkeys(keys), GamepadButtons(buttons),
+			actionKeyState(keystate), playerNumber(playerNum) {}
 
 		void SetKeyState(bool isDown)
 		{
@@ -68,18 +77,32 @@ namespace dae
 		bool ProcessInput();
 
 		template <typename CommandType, typename... Args>
-		void AddInputMapping(std::initializer_list<SDL_Scancode> keys, KeyState actionKeyState, Args&&... args)
+		void AddInputMapping(std::initializer_list<SDL_Scancode> keys,
+			std::initializer_list<WORD> buttons = {},
+			KeyState actionKeyState = KeyState::Down,
+			int playerNumber = 0,
+			Args&&... args)
 		{
-			m_InputMappings.emplace_back
-			(
-				std::make_unique<InputMapping>(std::make_unique<CommandType>(std::forward<Args>(args)...), keys, actionKeyState)
+			m_InputMappings.emplace_back(
+				std::make_unique<InputMapping>(std::make_unique<CommandType>(std::forward<Args>(args)...), keys, buttons, actionKeyState, playerNumber)
 			);
 		}
 
-		void AddPlayer(GameObject* player);
+		//Template which only takes keys and arguments as parameters for easier Input Binding
+		template <typename CommandType, typename... Args>
+		void AddInputMapping(std::initializer_list<SDL_Scancode> keys,
+			Args&&... args)
+		{
+			m_InputMappings.emplace_back(
+				std::make_unique<InputMapping>(std::make_unique<CommandType>(std::forward<Args>(args)...), keys)
+			);
+		}
+
+		void AddPlayer(GameObject* player,int plyrNr = 0);
 
 	private:
 		std::vector<std::unique_ptr<InputMapping>> m_InputMappings;
 		std::vector<GameObject*> m_Players;
+		std::vector<int> m_PlayerNr;
 	};
 }
