@@ -1,19 +1,20 @@
 
 #include "InputManager.h"
 #include <backends/imgui_impl_sdl2.h>
-#include <SDL.h>
 #include <Xinput.h>
 
 namespace dae
 {
     struct InputMappingImpl
     {
+    private:
         std::unique_ptr<Command> command;
         std::vector<SDL_Scancode> SDLkeys;
         std::vector<int> GamepadButtons;
         KeyState actionKeyState{ None };
         KeyState currentKeyState{ None };
 
+    public:
         InputMappingImpl(std::unique_ptr<Command> cmd,
             std::initializer_list<SDL_Scancode> keys,
             std::initializer_list<int> buttons = {},
@@ -54,7 +55,7 @@ namespace dae
 
         std::vector<int> DoGetGamepadButtons() { return GamepadButtons; }
 
-        Command* DoGetCommand() { return command.get(); }
+        void DoExecuteCommand() { if(command != nullptr) command->execute(); }
 
         bool DoCurrentKeyStateIsActionState()
         {
@@ -118,11 +119,7 @@ bool dae::InputManager::ProcessInput()
         // Execute if the key state matches the action state
         if (inputMapping->CurrentKeyStateIsActionState())
         {
-            if (inputMapping->GetCommand() != nullptr) 
-            {
-                inputMapping->GetCommand()->execute();
-            }
-
+            inputMapping->ExecuteCommand();
         }
 
         // else reset it
@@ -161,9 +158,9 @@ std::vector<int> dae::InputMapping::GetGamepadButtons()
     return m_pIMapImpl->DoGetGamepadButtons();
 }
 
-Command* dae::InputMapping::GetCommand()
+void dae::InputMapping::ExecuteCommand()
 {
-    return m_pIMapImpl->DoGetCommand();
+    m_pIMapImpl->DoExecuteCommand();
 }
 
 bool dae::InputMapping::CurrentKeyStateIsActionState()

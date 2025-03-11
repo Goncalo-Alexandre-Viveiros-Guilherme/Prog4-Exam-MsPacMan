@@ -37,7 +37,6 @@ enum GamepadButtons
 namespace dae
 {
 	struct InputMappingImpl;
-
 	struct InputMapping
 	{
 	private:
@@ -55,7 +54,7 @@ namespace dae
 
 		std::vector<SDL_Scancode> GetSDLKeys();
 		std::vector<int> GetGamepadButtons();
-		Command* GetCommand();
+		void ExecuteCommand();
 
 		bool CurrentKeyStateIsActionState();
 	};
@@ -72,8 +71,7 @@ namespace dae
 			Args&&... args)
 		{
 			m_InputMappings.emplace_back(
-				std::make_unique<InputMapping>(std::make_unique<CommandType>(std::forward<Args>(args)...), keys, buttons, actionKeyState)
-			);
+				std::make_unique<InputMapping>(std::make_unique<CommandType>(std::forward<Args>(args)...), keys, buttons, actionKeyState));
 		}
 
 	private:
