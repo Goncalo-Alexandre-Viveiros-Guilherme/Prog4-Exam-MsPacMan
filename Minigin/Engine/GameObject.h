@@ -6,6 +6,7 @@
 #include "Transform.h"
 #include "Component.h"
 
+class Observer;
 
 namespace dae
 {
@@ -91,12 +92,12 @@ namespace dae
 		GameObject& operator=(const GameObject& other) = delete;
 		GameObject& operator=(GameObject&& other) = delete;
 
+
 	private:
 		void AddChild(GameObject* child);
 		void RemoveChild(GameObject* child);
 		bool IsChild(GameObject* child) const;
 		void SetPositionDirty();
-
 
 		Transform m_Transform;
 		bool m_IsEnabled;

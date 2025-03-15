@@ -67,6 +67,7 @@ dae::GameObject::~GameObject()
 	m_Components.clear();
 }
 
+
 void dae::GameObject::AddChild(GameObject* child)
 {
 	m_Children.push_back(child);

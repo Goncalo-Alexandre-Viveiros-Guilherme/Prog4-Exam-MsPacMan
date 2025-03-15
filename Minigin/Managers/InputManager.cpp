@@ -55,7 +55,7 @@ namespace dae
 
         std::vector<int> DoGetGamepadButtons() { return GamepadButtons; }
 
-        void DoExecuteCommand() { if(command != nullptr) command->execute(); }
+        void DoExecuteCommand() { if(command != nullptr) command->Execute(); }
 
         bool DoCurrentKeyStateIsActionState()
         {

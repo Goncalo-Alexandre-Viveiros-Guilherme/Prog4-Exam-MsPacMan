@@ -14,13 +14,14 @@
 
 #include <filesystem>
 
-#include "GraphCacheComponent.h"
 #include "FPSComponent.h"
 #include "GameObject.h"
 #include "ImageComponent.h"
-#include "RotatorComponent.h"
+#include "HealthComponent.h"
 #include "TextComponent.h"
 #include <Commands.h>
+
+#include "HealthDisplayComponent.h"
 #include "InputManager.h"
 namespace fs = std::filesystem;
 
@@ -62,17 +63,24 @@ void load()
 	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadLeft }, KeyState::Down, -500.0f, 0.f,go.get());
 	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadRight }, KeyState::Down, 500.0f, 0.f,go.get());
 
-	go = std::make_shared<dae::GameObject>("MsPacMan");
-	go->AddComponent<ImageComponent>();
-	go->SetLocalPosition(300, 250);
-	go->GetComponent<ImageComponent>().SetTexture("MsPacMan.png"); 
-	scene.Add(go);
+	auto go2 = std::make_shared<dae::GameObject>("MsPacMan");
+	go2->AddComponent<ImageComponent>();
+	go2->SetLocalPosition(300, 250);
+	go2->GetComponent<ImageComponent>().SetTexture("MsPacMan.png");
+
+	scene.Add(go2);
+
+	go = std::make_shared<dae::GameObject>("MsPacManLives");
+	go->SetParent(go2.get(), false);
+	go->AddComponent<HealthComponent>(3.f);
+	go->AddComponent<TextComponent>("3", font);
+	go->AddComponent<HealthDisplayComponent>();
 
 	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_W}, {}, KeyState::Down,0.f, -250.0f,go.get());
 	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_S}, {}, KeyState::Down,0.f, 250.0f,go.get());
 	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_A}, {}, KeyState::Down,-250.0f, 0.f,go.get());
 	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_D}, {}, KeyState::Down,250.0f, 0.f,go.get());
-
+	//dae::InputManager::GetInstance().AddInputMapping<AddHealthCommand>({ SDL_SCANCODE_X }, {}, KeyState::Down, -1, &go->GetComponent<HealthComponent>());
 }
 
 int main(int, char*[]) {
