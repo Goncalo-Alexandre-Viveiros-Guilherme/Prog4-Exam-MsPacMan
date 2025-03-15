@@ -15,20 +15,23 @@ endif()
 
 # list source files here
 add_executable(${TARGET_NAME} ${TARGET_PARAM}
-  Minigin/Font.cpp
-  Minigin/GameObject.cpp
   Minigin/Main.cpp
-  Minigin/Minigin.cpp
-  Minigin/Renderer.cpp
-  Minigin/Scene.cpp
-  Minigin/Texture2D.cpp
-  Minigin/Transform.cpp
-  Minigin/EngineTime.cpp 
-  Minigin/Commands.cpp
 
-  Minigin/Manager/InputManager.cpp
-  Minigin/Manager/ResourceManager.cpp
-  Minigin/Manager/SceneManager.cpp
+  Minigin/Engine/GameObject.cpp
+  Minigin/Engine/Minigin.cpp
+  Minigin/Engine/Scene.cpp
+  Minigin/Engine/Commands.cpp
+  Minigin/Engine/EngineTime.cpp
+  Minigin/Engine/Transform.cpp
+
+
+  Minigin/Rendering/Renderer.cpp
+  Minigin/Rendering/Texture2D.cpp
+  Minigin/Rendering/Font.cpp
+
+  Minigin/Managers/InputManager.cpp
+  Minigin/Managers/ResourceManager.cpp
+  Minigin/Managers/SceneManager.cpp
   
  Minigin/Components/Component.cpp 
  Minigin/Components/TextComponent.cpp
@@ -36,7 +39,7 @@ add_executable(${TARGET_NAME} ${TARGET_PARAM}
  Minigin/Components/FPSComponent.cpp
  Minigin/Components/RotatorComponent.cpp 
  Minigin/Components/GraphCacheComponent.cpp 
-)
+ Minigin/Components/HealthComponent.cpp "Minigin/Components/HealthDisplayComponent.cpp" )
 
 # enable c++20 features
 target_compile_features(${TARGET_NAME} PUBLIC cxx_std_20)
@@ -234,8 +237,10 @@ target_link_libraries(${TARGET_NAME} PRIVATE implot_lib)
 
 target_include_directories(${TARGET_NAME} PRIVATE
   ${CMAKE_SOURCE_DIR}/Minigin/
+  ${CMAKE_SOURCE_DIR}/Minigin/Engine/
   ${CMAKE_SOURCE_DIR}/Minigin/Components/
-  ${CMAKE_SOURCE_DIR}/Minigin/Manager/
+  ${CMAKE_SOURCE_DIR}/Minigin/Managers/
+  ${CMAKE_SOURCE_DIR}/Minigin/Rendering/
   ${glm_SOURCE_DIR}
 )
 
