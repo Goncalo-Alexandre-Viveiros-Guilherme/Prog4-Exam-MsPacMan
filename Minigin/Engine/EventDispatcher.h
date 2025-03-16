@@ -15,18 +15,23 @@ public:
 
     // Register a callback for a specific event type (identified by std::type_index)
     template<typename EventType>
-    void AddListener(std::function<void(const EventType&)> listener) {
-        auto wrapper = [listener](const Event& e) {
+    void AddListener(std::function<void(const EventType&)> listener) 
+    {
+        auto wrapper = [listener](const Event& e) 
+            {
             listener(static_cast<const EventType&>(e));
             };
         m_Listeners[typeid(EventType)].push_back(wrapper);
     }
 
     // Dispatch an event to all registered listeners for its type
-    void Dispatch(const Event& event) const {
+    void Dispatch(const Event& event) const
+	{
         auto it = m_Listeners.find(typeid(event));
-        if (it != m_Listeners.end()) {
-            for (auto& callback : it->second) {
+        if (it != m_Listeners.end()) 
+        {
+            for (auto& callback : it->second) 
+            {
                 callback(event);
             }
         }

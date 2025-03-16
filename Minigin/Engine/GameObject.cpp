@@ -1,5 +1,6 @@
 #include "GameObject.h"
 
+#include <iostream>
 #include <string>
 
 #include "ResourceManager.h"
@@ -11,14 +12,14 @@ std::string dae::GameObject::GetName()
 	return m_Name;	
 }
 
-void dae::GameObject::DeleteComponent(Component& componentToDelete)
+void dae::GameObject::DeleteComponent(const Component& componentToDelete)
 {
 	for (Component* component : m_Components)
 	{
 		if (component == &componentToDelete)
 		{
 			delete component;
-			m_Components.erase(std::remove(m_Components.begin(), m_Components.end(), component), m_Components.end());
+			std::erase(m_Components, component);
 			break;
 		}
 	}
@@ -53,8 +54,9 @@ std::vector<dae::GameObject*>& dae::GameObject::GetGameObjectChildren()
 	return m_Children;
 }
 
-dae::GameObject::GameObject(std::string name) : m_IsEnabled(true), m_Parent(nullptr), m_Name(name)
+dae::GameObject::GameObject(const std::string& name) : m_IsEnabled(true), m_Parent(nullptr), m_Name(name)
 {
+	std::cerr << "my name is: " << m_Name;
 }
 
 dae::GameObject::~GameObject()
@@ -87,7 +89,7 @@ void dae::GameObject::SetPositionDirty()
 {
 	m_IsPositionDirty = true;
 
-	for (auto& child: m_Children)
+	for (const auto& child: m_Children)
 	{
 		child->SetPositionDirty();
 	}
@@ -103,7 +105,7 @@ void dae::GameObject::Update()
 	std::erase_if(m_Components, [](const Component* comp) { return comp->GetIsMarkedForDestruction(); });
 }
 
-void dae::GameObject::FixedUpdate()
+void dae::GameObject::FixedUpdate() const
 {
 	for (auto& component : m_Components)
 	{

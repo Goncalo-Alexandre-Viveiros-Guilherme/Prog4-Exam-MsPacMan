@@ -15,7 +15,7 @@ namespace dae
 		
 	public:
 		void Update();
-		void FixedUpdate();
+		void FixedUpdate() const;
 		void Render() const;
 
 		void SetLocalPosition(float x, float y);
@@ -28,7 +28,7 @@ namespace dae
 		std::vector<Component*> GetAllComponents();
 
 		template <typename Comp>
-		Comp& GetComponent() const
+		Comp* GetComponent() const
 		{
 			static_assert(std::is_base_of_v<Component, Comp>, "Template value must be a Component");
 
@@ -36,7 +36,7 @@ namespace dae
 			{
 				if (Comp* found = dynamic_cast<Comp*>(component)) 
 				{
-					return *found; 
+					return found; 
 				}
 			}
 
@@ -80,12 +80,12 @@ namespace dae
 		}
 
 		std::string GetName();
-		void DeleteComponent(Component& componentToDelete);
+		void DeleteComponent(const Component& componentToDelete);
 		void SetParent(GameObject* parent,bool keepWorldPosition);
 		bool HasParent() const;
 		std::vector<GameObject*>& GetGameObjectChildren();
 
-		GameObject(std::string name);
+		GameObject(const std::string& name);
 		~GameObject();
 		GameObject(const GameObject& other) = delete;
 		GameObject(GameObject&& other) = delete;

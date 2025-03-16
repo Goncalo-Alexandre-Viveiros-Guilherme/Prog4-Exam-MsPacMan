@@ -12,8 +12,8 @@ HealthComponent::HealthComponent(dae::GameObject& parent, float maxHealth):Compo
 
 void HealthComponent::AddToHealth(float value)
 {
-    m_Health = std::clamp(m_Health + value, 0.f, m_MaxHealth);
-    HealthChangedEvent event(m_Health);
+    m_Health = m_Health + value;
+    HealthChangedEvent event(m_Health,this);
     EventDispatcher::GetInstance().Dispatch(event);
 }
 

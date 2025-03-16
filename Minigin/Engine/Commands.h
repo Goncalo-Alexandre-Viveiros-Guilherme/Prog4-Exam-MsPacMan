@@ -1,16 +1,16 @@
 #pragma once
 
-class HealthComponent;
-
 namespace dae
 { 
 class GameObject;
 }
+class HealthComponent;
+class PointsComponent;
 
 class Command
 {
 public:
-	virtual ~Command() {}
+	virtual ~Command() = default;
 	virtual void Execute() = 0;
 };
 
@@ -29,10 +29,21 @@ private:
 class AddHealthCommand : public Command
 {
 public:
-	AddHealthCommand(float AmountToAdd,HealthComponent* healthComponent);
+	AddHealthCommand(float amountToAdd,HealthComponent* healthComponent);
 	void Execute() override;
 
 private:
 	float m_ValueToAdd;
 	HealthComponent* m_HealthComponent;
+};
+
+class AddPointsCommand : public Command
+{
+public:
+	AddPointsCommand(float amountToAdd, PointsComponent* pointsComponent);
+	void Execute() override;
+
+private:
+	float m_ValueToAdd;
+	PointsComponent* m_PointsComponent;
 };

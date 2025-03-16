@@ -11,6 +11,7 @@
 #include "SceneManager.h"
 #include "ResourceManager.h"
 #include "Scene.h"
+#include "steam_api.h"
 
 #include <filesystem>
 
@@ -20,9 +21,13 @@
 #include "HealthComponent.h"
 #include "TextComponent.h"
 #include <Commands.h>
+#include <iostream>
 
 #include "HealthDisplayComponent.h"
 #include "InputManager.h"
+#include "PointDisplayComponent.h"
+#include "PointsComponent.h"
+#include "SteamAchievements.h"
 namespace fs = std::filesystem;
 
 void load()
@@ -30,13 +35,11 @@ void load()
 	auto& scene = dae::SceneManager::GetInstance().CreateScene("Demo");
 
 	auto go = std::make_shared<dae::GameObject>("BackgroundGOBJ");
-	go->AddComponent<ImageComponent>();
-	go->GetComponent<ImageComponent>().SetTexture("background.tga");
+	go->AddComponent<ImageComponent>("background.tga");
 	scene.Add(go);
 
 	go = std::make_shared<dae::GameObject>("LogoGOBJ");
-	go->AddComponent<ImageComponent>();
-	go->GetComponent<ImageComponent>().SetTexture("logo.tga");
+	go->AddComponent<ImageComponent>("logo.tga");
 	go->SetLocalPosition(216, 180);
 	scene.Add(go);
 
@@ -52,35 +55,75 @@ void load()
 	go->SetLocalPosition(0, 0);
 	scene.Add(go);
 
-	go = std::make_shared<dae::GameObject>("PacMan");
-	go->AddComponent<ImageComponent>();
-	go->GetComponent<ImageComponent>().SetTexture("PacMan.png");
-	go->SetLocalPosition(250, 250);
-	scene.Add(go);
+	auto pacman = std::make_shared<dae::GameObject>("PacMan");
+	pacman->AddComponent<ImageComponent>("PacMan.png");
+	pacman->AddComponent<HealthComponent>(3.f);
+	pacman->AddComponent<PointsComponent>();
+	pacman->SetLocalPosition(250, 250);
+	scene.Add(pacman);
 
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadUp },KeyState::Down, 0.f, -500.0f, go.get());
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadDown }, KeyState::Down, 0.f, 500.0f,go.get());
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadLeft }, KeyState::Down, -500.0f, 0.f,go.get());
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadRight }, KeyState::Down, 500.0f, 0.f,go.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadUp },KeyState::Down, 0.f, -500.0f,  pacman.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadDown }, KeyState::Down, 0.f, 500.0f,pacman.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadLeft }, KeyState::Down, -500.0f, 0.f,pacman.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadRight }, KeyState::Down, 500.0f, 0.f,pacman.get());
+	dae::InputManager::GetInstance().AddInputMapping<AddHealthCommand>({}, { GamePad_X }, Pressed, -1.f, pacman->GetComponent<HealthComponent>());
+	dae::InputManager::GetInstance().AddInputMapping<AddPointsCommand>({}, { GamePad_A }, Pressed, 10.f, pacman->GetComponent<PointsComponent>());
+	dae::InputManager::GetInstance().AddInputMapping<AddPointsCommand>({}, { GamePad_B }, Pressed, 100.f, pacman->GetComponent<PointsComponent>());
 
-	auto go2 = std::make_shared<dae::GameObject>("MsPacMan");
-	go2->AddComponent<ImageComponent>();
-	go2->SetLocalPosition(300, 250);
-	go2->GetComponent<ImageComponent>().SetTexture("MsPacMan.png");
 
-	scene.Add(go2);
+	auto msPacMan = std::make_shared<dae::GameObject>("MsPacMan");
+	msPacMan->AddComponent<ImageComponent>("MsPacMan.png");
+	msPacMan->AddComponent<HealthComponent>(3.f);
+	msPacMan->AddComponent<PointsComponent>();
+	msPacMan->SetLocalPosition(300, 250);
+	scene.Add(msPacMan);
+
+	font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 18);
 
 	go = std::make_shared<dae::GameObject>("MsPacManLives");
-	go->SetParent(go2.get(), false);
-	go->AddComponent<HealthComponent>(3.f);
-	go->AddComponent<TextComponent>("3", font);
-	go->AddComponent<HealthDisplayComponent>();
+	go->SetLocalPosition(10, 175);
+	go->AddComponent<TextComponent>("# lives: 3", font);
+	go->AddComponent<HealthDisplayComponent>(msPacMan->GetComponent<HealthComponent>());
+	scene.Add(go);
 
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_W}, {}, KeyState::Down,0.f, -250.0f,go.get());
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_S}, {}, KeyState::Down,0.f, 250.0f,go.get());
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_A}, {}, KeyState::Down,-250.0f, 0.f,go.get());
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_D}, {}, KeyState::Down,250.0f, 0.f,go.get());
-	//dae::InputManager::GetInstance().AddInputMapping<AddHealthCommand>({ SDL_SCANCODE_X }, {}, KeyState::Down, -1, &go->GetComponent<HealthComponent>());
+	go = std::make_shared<dae::GameObject>("MsPacmanPoints");
+	go->SetLocalPosition(10, 200);
+	go->AddComponent<TextComponent>("Score: 0", font);
+	go->AddComponent<PointDisplayComponent>(msPacMan->GetComponent<PointsComponent>());
+	scene.Add(go);
+
+	go = std::make_shared<dae::GameObject>("PacManLives");
+	go->SetLocalPosition(10, 125);
+	go->AddComponent<TextComponent>("# lives: 3", font);
+	go->AddComponent<HealthDisplayComponent>(pacman->GetComponent<HealthComponent>());
+	scene.Add(go);
+
+	go = std::make_shared<dae::GameObject>("PacmanPoints");
+	go->SetLocalPosition(10, 150);
+	go->AddComponent<TextComponent>("Score: 0", font);
+	go->AddComponent<PointDisplayComponent>(pacman->GetComponent<PointsComponent>());
+	scene.Add(go);
+
+	font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 16);
+
+	go = std::make_shared<dae::GameObject>("Explanation Text Pacman");
+	go->SetLocalPosition(10, 70);
+	go->AddComponent<TextComponent>("Use the D-Pad to move Pacman, X to inflict damage, A and B to pick up pellets", font);
+	scene.Add(go);
+
+	go = std::make_shared<dae::GameObject>("Explanation Text MsPacMan");
+	go->SetLocalPosition(10, 95);
+	go->AddComponent<TextComponent>("Use the WASD to move MsPacman, C to inflict damage, Z and X to pick up pellets", font);
+	scene.Add(go);
+
+
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_W}, {}, Down,0.f, -250.0f,msPacMan.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_S}, {}, Down,0.f, 250.0f,msPacMan.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_A}, {}, Down,-250.0f, 0.f,msPacMan.get());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({SDL_SCANCODE_D}, {}, Down,250.0f, 0.f,msPacMan.get());
+	dae::InputManager::GetInstance().AddInputMapping<AddHealthCommand>({ SDL_SCANCODE_C }, {}, Pressed, -1.f, msPacMan->GetComponent<HealthComponent>());
+	dae::InputManager::GetInstance().AddInputMapping<AddPointsCommand>({ SDL_SCANCODE_Z }, {}, Pressed, 10.f, msPacMan->GetComponent<PointsComponent>());
+	dae::InputManager::GetInstance().AddInputMapping<AddPointsCommand>({ SDL_SCANCODE_X }, {}, Pressed, 100.f, msPacMan->GetComponent<PointsComponent>());
 }
 
 int main(int, char*[]) {
@@ -91,7 +134,17 @@ int main(int, char*[]) {
 	if(!fs::exists(data_location))
 		data_location = "../Data/";
 #endif
+	if (!SteamAPI_Init())
+	{
+		std::cerr << "Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed)." << std::endl;
+		return 1;
+	}
+		std::cout << "Successfully initialized steam." << std::endl;
+	g_SteamAchievements = new CSteamAchievements(g_Achievements, 4);
+
 	dae::Minigin engine(data_location);
 	engine.Run(load);
-    return 0;
+
+	SteamAPI_Shutdown();
+	return 0;
 }

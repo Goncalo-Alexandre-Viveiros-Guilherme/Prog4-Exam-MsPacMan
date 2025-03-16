@@ -39,7 +39,10 @@ add_executable(${TARGET_NAME} ${TARGET_PARAM}
  Minigin/Components/FPSComponent.cpp
  Minigin/Components/RotatorComponent.cpp 
  Minigin/Components/GraphCacheComponent.cpp 
- Minigin/Components/HealthComponent.cpp "Minigin/Components/HealthDisplayComponent.cpp" )
+ Minigin/Components/HealthComponent.cpp 
+ Minigin/Components/HealthDisplayComponent.cpp  
+ Minigin/Components/PointsComponent.cpp
+ Minigin/Components/PointsDisplayComponent.cpp "Minigin/Engine/SteamAchievements.cpp")
 
 # enable c++20 features
 target_compile_features(${TARGET_NAME} PUBLIC cxx_std_20)
@@ -230,10 +233,35 @@ target_link_libraries(${TARGET_NAME} PRIVATE implot_lib)
  ########################################################################Imgui
     target_link_libraries(imgui_lib PRIVATE ${SDL2_LIBRARIES})
 
-###############################################################################
+function(use_steamworks ENGINE_TARGET)
+    set(STEAMWORKS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Minigin/3rdParty/steamworks")
 
+    set(STEAMWORKS_INCLUDE_DIR
+            ${CMAKE_CURRENT_SOURCE_DIR}/Minigin/3rdParty/steamworks/public/steam)
+    set(STEAMWORKS_LIB_DIR
+            ${CMAKE_CURRENT_SOURCE_DIR}/Minigin/3rdParty/steamworks/redistributable_bin)
 
+    set(STEAMWORKS_LIB ${STEAMWORKS_LIB_DIR}/win64/steam_api64.lib)
 
+    add_custom_command(
+            TARGET ${ENGINE_TARGET}
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+            ${STEAMWORKS_LIB_DIR}/win64/steam_api64.dll ${CMAKE_BINARY_DIR})
+
+    target_include_directories(${ENGINE_TARGET} PUBLIC ${STEAMWORKS_INCLUDE_DIR})
+    target_link_libraries(${ENGINE_TARGET} PUBLIC ${STEAMWORKS_LIB})
+
+    target_compile_definitions(${ENGINE_TARGET} PUBLIC USE_STEAMWORKS)
+endfunction()
+
+use_steamworks(${TARGET_NAME})
+
+add_custom_command(
+        TARGET ${TARGET_NAME}
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Minigin/steam_appid.txt
+        ${CMAKE_BINARY_DIR})
 
 target_include_directories(${TARGET_NAME} PRIVATE
   ${CMAKE_SOURCE_DIR}/Minigin/

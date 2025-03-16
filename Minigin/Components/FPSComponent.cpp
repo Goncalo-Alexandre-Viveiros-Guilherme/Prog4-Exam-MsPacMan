@@ -23,7 +23,7 @@ void FPSComponent::Update()
             stream << std::fixed << std::setprecision(2) << m_Fps;
             const std::string fpsString = stream.str();
 
-            GetParent()->GetComponent<TextComponent>().SetText(fpsString);
+            GetParent()->GetComponent<TextComponent>()->SetText(fpsString);
         }
 
         m_Timer = 0;

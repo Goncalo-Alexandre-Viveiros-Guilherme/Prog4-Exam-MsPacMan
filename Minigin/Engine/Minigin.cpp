@@ -21,6 +21,7 @@
 #include "ResourceManager.h"
 #include "Scene.h"
 #include "EngineTime.h"
+#include "steam_api_common.h"
 
 SDL_Window* g_window{};
 
@@ -123,6 +124,8 @@ void dae::Minigin::Run(const std::function<void()>& load)
 
 void dae::Minigin::RunOneFrame()
 {
+	SteamAPI_RunCallbacks();
+
 	Time::GetInstance().Update();
 	
 	m_Lag += Time::GetInstance().GetDeltaTime();
