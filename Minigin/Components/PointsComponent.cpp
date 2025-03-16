@@ -9,14 +9,8 @@ PointsComponent::PointsComponent(dae::GameObject& parent): Component(parent), m_
 void PointsComponent::AddToPoints(const float value)
 {
 	m_CurrentPoints += value;
-	PointsChangedEvent event(m_CurrentPoints, this);
-	EventDispatcher::GetInstance().Dispatch(event);
-
-	if (m_CurrentPoints >= 500)
-	{
-		if (g_SteamAchievements)
-			g_SteamAchievements->SetAchievement("ACH_WIN_ONE_GAME");
-	}
+	PointsChangedEvent event(m_CurrentPoints);
+	EventDispatcher::GetInstance().Dispatch(event,GetParent());
 }
 
 float PointsComponent::GetPoints() const

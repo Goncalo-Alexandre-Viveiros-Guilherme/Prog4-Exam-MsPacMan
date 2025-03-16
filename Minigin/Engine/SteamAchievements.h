@@ -1,4 +1,6 @@
 #pragma once
+#include <memory>
+
 #include "steam_api_common.h"
 #include "isteamuserstats.h"
 
@@ -45,4 +47,4 @@ enum EAchievements
 
 // Declare but do not define the global variables in the header file
 extern Achievement_t g_Achievements[];
-extern CSteamAchievements* g_SteamAchievements;
+extern std::unique_ptr<CSteamAchievements> g_SteamAchievements;

@@ -2,41 +2,65 @@
 
 #include <functional>
 #include <typeindex>
+#include <unordered_map>
+#include <vector>
+#include <memory>
 #include "Events.h"
 #include "Singleton.h"
+#include "GameObject.h"  // Include the GameObject class
 
-// The central event dispatcher
-class EventDispatcher: public dae::Singleton<EventDispatcher>
+class EventDispatcher : public dae::Singleton<EventDispatcher>
 {
     friend class Singleton;
 
 public:
     using Callback = std::function<void(const Event&)>;
 
-    // Register a callback for a specific event type (identified by std::type_index)
+    // Register a callback with a game object for a specific event type
     template<typename EventType>
-    void AddListener(std::function<void(const EventType&)> listener) 
+    void AddListener(dae::GameObject* gameObject, std::function<void(const EventType&)> listener)
     {
-        auto wrapper = [listener](const Event& e) 
+        auto wrapper = [listener](const Event& e)
             {
-            listener(static_cast<const EventType&>(e));
+                listener(static_cast<const EventType&>(e));
             };
-        m_Listeners[typeid(EventType)].push_back(wrapper);
+
+        // Store listeners mapped by event type and associated game object
+        m_Listeners[typeid(EventType)].push_back({ gameObject, wrapper });
     }
 
-    // Dispatch an event to all registered listeners for its type
-    void Dispatch(const Event& event) const
-	{
+    // Dispatch an event to all registered listeners
+    void Dispatch(const Event& event,const dae::GameObject* gameObj) const
+    {
         auto it = m_Listeners.find(typeid(event));
-        if (it != m_Listeners.end()) 
+        if (it != m_Listeners.end())
         {
-            for (auto& callback : it->second) 
+            for (const auto& [gameObject, callback] : it->second)
             {
-                callback(event);
+                if (gameObject == gameObj || gameObject == nullptr)
+                {
+                    callback(event);
+                }
             }
         }
     }
 
+    void RemoveListeners(dae::GameObject* gameObject)
+    {
+        for (auto& [eventType, listeners] : m_Listeners)
+            std::erase_if(listeners,[gameObject](const ListenerEntry& entry)  
+            {
+	            return entry.gameObject == gameObject;
+            });
+        
+    }
+
 private:
-    std::unordered_map<std::type_index, std::vector<Callback>> m_Listeners;
+    struct ListenerEntry
+    {
+	    dae::GameObject* gameObject;
+        Callback callback;
+    };
+
+    std::unordered_map<std::type_index, std::vector<ListenerEntry>> m_Listeners;
 };

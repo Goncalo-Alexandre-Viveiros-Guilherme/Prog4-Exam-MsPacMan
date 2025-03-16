@@ -13,8 +13,8 @@ HealthComponent::HealthComponent(dae::GameObject& parent, float maxHealth):Compo
 void HealthComponent::AddToHealth(float value)
 {
     m_Health = m_Health + value;
-    HealthChangedEvent event(m_Health,this);
-    EventDispatcher::GetInstance().Dispatch(event);
+    HealthChangedEvent event(m_Health);
+    EventDispatcher::GetInstance().Dispatch(event,GetParent());
 }
 
 float HealthComponent::GetHealth() const

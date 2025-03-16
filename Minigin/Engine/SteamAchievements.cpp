@@ -106,6 +106,10 @@ void CSteamAchievements::OnAchievementStored(UserAchievementStored_t* pCallback)
 	}
 }
 
+CSteamAchievements::~CSteamAchievements()
+{
+}
+
 // Define the achievements array
 Achievement_t g_Achievements[] =
 {
@@ -116,4 +120,4 @@ Achievement_t g_Achievements[] =
 };
 
 // Define the global achievement pointer
-CSteamAchievements* g_SteamAchievements = nullptr;
+std::unique_ptr<CSteamAchievements> g_SteamAchievements;

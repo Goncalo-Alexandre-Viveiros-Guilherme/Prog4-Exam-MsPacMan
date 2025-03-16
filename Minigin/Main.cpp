@@ -23,6 +23,7 @@
 #include <Commands.h>
 #include <iostream>
 
+#include "Achievements.h"
 #include "HealthDisplayComponent.h"
 #include "InputManager.h"
 #include "PointDisplayComponent.h"
@@ -83,25 +84,25 @@ void load()
 	go = std::make_shared<dae::GameObject>("MsPacManLives");
 	go->SetLocalPosition(10, 175);
 	go->AddComponent<TextComponent>("# lives: 3", font);
-	go->AddComponent<HealthDisplayComponent>(msPacMan->GetComponent<HealthComponent>());
+	go->AddComponent<HealthDisplayComponent>(msPacMan.get());
 	scene.Add(go);
 
 	go = std::make_shared<dae::GameObject>("MsPacmanPoints");
 	go->SetLocalPosition(10, 200);
 	go->AddComponent<TextComponent>("Score: 0", font);
-	go->AddComponent<PointDisplayComponent>(msPacMan->GetComponent<PointsComponent>());
+	go->AddComponent<PointDisplayComponent>(msPacMan.get());
 	scene.Add(go);
 
 	go = std::make_shared<dae::GameObject>("PacManLives");
 	go->SetLocalPosition(10, 125);
 	go->AddComponent<TextComponent>("# lives: 3", font);
-	go->AddComponent<HealthDisplayComponent>(pacman->GetComponent<HealthComponent>());
+	go->AddComponent<HealthDisplayComponent>(pacman.get());
 	scene.Add(go);
 
 	go = std::make_shared<dae::GameObject>("PacmanPoints");
 	go->SetLocalPosition(10, 150);
 	go->AddComponent<TextComponent>("Score: 0", font);
-	go->AddComponent<PointDisplayComponent>(pacman->GetComponent<PointsComponent>());
+	go->AddComponent<PointDisplayComponent>(pacman.get());
 	scene.Add(go);
 
 	font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 16);
@@ -124,6 +125,8 @@ void load()
 	dae::InputManager::GetInstance().AddInputMapping<AddHealthCommand>({ SDL_SCANCODE_C }, {}, Pressed, -1.f, msPacMan->GetComponent<HealthComponent>());
 	dae::InputManager::GetInstance().AddInputMapping<AddPointsCommand>({ SDL_SCANCODE_Z }, {}, Pressed, 10.f, msPacMan->GetComponent<PointsComponent>());
 	dae::InputManager::GetInstance().AddInputMapping<AddPointsCommand>({ SDL_SCANCODE_X }, {}, Pressed, 100.f, msPacMan->GetComponent<PointsComponent>());
+
+	Achievements::GetInstance().NotifyAchievements();
 }
 
 int main(int, char*[]) {
@@ -140,7 +143,7 @@ int main(int, char*[]) {
 		return 1;
 	}
 		std::cout << "Successfully initialized steam." << std::endl;
-	g_SteamAchievements = new CSteamAchievements(g_Achievements, 4);
+	g_SteamAchievements = std::make_unique<CSteamAchievements>(g_Achievements, 4);
 
 	dae::Minigin engine(data_location);
 	engine.Run(load);

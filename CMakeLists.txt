@@ -42,7 +42,9 @@ add_executable(${TARGET_NAME} ${TARGET_PARAM}
  Minigin/Components/HealthComponent.cpp 
  Minigin/Components/HealthDisplayComponent.cpp  
  Minigin/Components/PointsComponent.cpp
- Minigin/Components/PointsDisplayComponent.cpp "Minigin/Engine/SteamAchievements.cpp")
+ Minigin/Components/PointsDisplayComponent.cpp 
+ Minigin/Engine/SteamAchievements.cpp 
+ Minigin/GameSource/Achievements.cpp)
 
 # enable c++20 features
 target_compile_features(${TARGET_NAME} PUBLIC cxx_std_20)
@@ -266,6 +268,7 @@ add_custom_command(
 target_include_directories(${TARGET_NAME} PRIVATE
   ${CMAKE_SOURCE_DIR}/Minigin/
   ${CMAKE_SOURCE_DIR}/Minigin/Engine/
+  ${CMAKE_SOURCE_DIR}/Minigin/GameSource/
   ${CMAKE_SOURCE_DIR}/Minigin/Components/
   ${CMAKE_SOURCE_DIR}/Minigin/Managers/
   ${CMAKE_SOURCE_DIR}/Minigin/Rendering/
