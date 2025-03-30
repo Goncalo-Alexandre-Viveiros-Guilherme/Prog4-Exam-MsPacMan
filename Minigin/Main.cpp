@@ -29,6 +29,7 @@
 #include "PointDisplayComponent.h"
 #include "PointsComponent.h"
 #include "SteamAchievements.h"
+#include "SceneManager.h"
 namespace fs = std::filesystem;
 
 void load()
@@ -137,13 +138,10 @@ int main(int, char*[]) {
 	if(!fs::exists(data_location))
 		data_location = "../Data/";
 #endif
-	if (!SteamAPI_Init())
+	if (SteamAPI_Init())
 	{
-		std::cerr << "Fatal Error - Steam must be running to play this game (SteamAPI_Init() failed)." << std::endl;
-		return 1;
+		g_SteamAchievements = std::make_unique<CSteamAchievements>(g_Achievements, 4);
 	}
-		std::cout << "Successfully initialized steam." << std::endl;
-	g_SteamAchievements = std::make_unique<CSteamAchievements>(g_Achievements, 4);
 
 	dae::Minigin engine(data_location);
 	engine.Run(load);

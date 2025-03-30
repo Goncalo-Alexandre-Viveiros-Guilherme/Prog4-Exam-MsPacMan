@@ -15,39 +15,48 @@ endif()
 
 # list source files here
 add_executable(${TARGET_NAME} ${TARGET_PARAM}
-  Minigin/Main.cpp
+    Minigin/Main.cpp
+    Minigin/Components/HealthComponent.cpp 
+    Minigin/Components/HealthDisplayComponent.cpp  
+    Minigin/Components/PointsComponent.cpp
+    Minigin/Components/PointsDisplayComponent.cpp 
+    Minigin/GameSource/Achievements.cpp
+)
 
-  Minigin/Engine/GameObject.cpp
-  Minigin/Engine/Minigin.cpp
-  Minigin/Engine/Scene.cpp
-  Minigin/Engine/Commands.cpp
-  Minigin/Engine/EngineTime.cpp
-  Minigin/Engine/Transform.cpp
+ add_library(miniginLib STATIC 
+    Minigin/Engine/GameObject.cpp
+    Minigin/Engine/Minigin.cpp
+    Minigin/Engine/Scene.cpp
+    Minigin/Engine/Commands.cpp
+    Minigin/Engine/EngineTime.cpp
+    Minigin/Engine/Transform.cpp
 
+    
+    Minigin/Rendering/Renderer.cpp
+    Minigin/Rendering/Texture2D.cpp
+    Minigin/Rendering/Font.cpp
 
-  Minigin/Rendering/Renderer.cpp
-  Minigin/Rendering/Texture2D.cpp
-  Minigin/Rendering/Font.cpp
-
-  Minigin/Managers/InputManager.cpp
-  Minigin/Managers/ResourceManager.cpp
-  Minigin/Managers/SceneManager.cpp
+    Minigin/Managers/InputManager.cpp
+    Minigin/Managers/ResourceManager.cpp
+    Minigin/Managers/SceneManager.cpp
   
- Minigin/Components/Component.cpp 
- Minigin/Components/TextComponent.cpp
- Minigin/Components/ImageComponent.cpp
- Minigin/Components/FPSComponent.cpp
- Minigin/Components/RotatorComponent.cpp 
- Minigin/Components/GraphCacheComponent.cpp 
- Minigin/Components/HealthComponent.cpp 
- Minigin/Components/HealthDisplayComponent.cpp  
- Minigin/Components/PointsComponent.cpp
- Minigin/Components/PointsDisplayComponent.cpp 
- Minigin/Engine/SteamAchievements.cpp 
- Minigin/GameSource/Achievements.cpp)
+    Minigin/Components/Component.cpp 
+    Minigin/Components/TextComponent.cpp
+    Minigin/Components/ImageComponent.cpp
+    Minigin/Components/FPSComponent.cpp
+    Minigin/Components/RotatorComponent.cpp 
+    Minigin/Components/GraphCacheComponent.cpp 
+    Minigin/Engine/SteamAchievements.cpp 
+    Minigin/Engine/Singleton.h
+    Minigin/Engine/Events.h
+    Minigin/Engine/EventDispatcher.h
+    Minigin/Engine/Minigin.h
+ )
+  target_link_libraries(${TARGET_NAME} PUBLIC miniginLib)
 
 # enable c++20 features
 target_compile_features(${TARGET_NAME} PUBLIC cxx_std_20)
+target_compile_features(miniginLib PUBLIC cxx_std_20)
 # set minigin as the default startup project
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ${TARGET_NAME})
 
@@ -129,14 +138,16 @@ if (WIN32)
   find_package(VLD CONFIG)
 
   # set all include directories
-  target_include_directories(${TARGET_NAME} PRIVATE
+  #target_include_directories(${TARGET_NAME} PRIVATE
+  target_include_directories(miniginLib PUBLIC
     ${VLD_INCLUDE_DIR}
     ${SDL2_INCLUDE_DIR} 
     ${SDL2_IMAGE_INCLUDE_DIR} 
     ${SDL2_TTF_INCLUDE_DIR})
   
   # set libraries to link with
-  target_link_libraries(${TARGET_NAME} PUBLIC
+  #target_link_libraries(${TARGET_NAME} PUBLIC
+  target_link_libraries(miniginLib PUBLIC
     ${SDL2_LIBRARIES} 
     ${SDL2_IMAGE_LIBRARIES} 
     ${SDL2_TTF_LIBRARIES} 
@@ -174,12 +185,20 @@ elseif(NOT EMSCRIPTEN)
   set(SDL2TTF_INSTALL OFF)
   FetchContent_MakeAvailable(SDL2_ttf)
 
-  target_include_directories("${TARGET_NAME}" PUBLIC 
+ target_include_directories("${TARGET_NAME}" PUBLIC 
+     ${sdl2_SOURCE_DIR}/include
+    ${sdl2_image_SOURCE_DIR}/include
+    ${sdl2_ttf_SOURCE_DIR}
+  )
+   target_include_directories(miniginLib PUBLIC 
     ${sdl2_SOURCE_DIR}/include
     ${sdl2_image_SOURCE_DIR}/include
     ${sdl2_ttf_SOURCE_DIR}
   )
   target_link_libraries("${TARGET_NAME}" PUBLIC 
+     SDL2::SDL2main SDL2::SDL2 SDL2_image::SDL2_image SDL2_ttf::SDL2_ttf
+  )
+ target_link_libraries(miniginLib PUBLIC 
     SDL2::SDL2main SDL2::SDL2 SDL2_image::SDL2_image SDL2_ttf::SDL2_ttf
   )
 
@@ -188,7 +207,8 @@ endif()
 
 # Link XInput for Windows
 if(WIN32)
-    target_link_libraries("${TARGET_NAME}" PRIVATE Xinput.lib)
+    target_link_libraries("${TARGET_NAME}" PUBLIC Xinput.lib)
+    target_link_libraries(miniginLib PUBLIC Xinput.lib)
 endif()
 
 
@@ -213,9 +233,9 @@ add_library(imgui_lib STATIC
   ${imgui_SOURCE_DIR}/backends/imgui_impl_sdl2.cpp
   ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp)
 
-target_link_libraries(${TARGET_NAME} PRIVATE imgui_lib)
+target_link_libraries(miniginLib PUBLIC imgui_lib)
 target_include_directories(imgui_lib PUBLIC ${imgui_SOURCE_DIR})
-target_include_directories(imgui_lib PRIVATE ${SDL2_INCLUDE_DIR})
+target_include_directories(imgui_lib PUBLIC ${SDL2_INCLUDE_DIR})
 
 FetchContent_Declare(
   implot
@@ -231,9 +251,9 @@ add_library(implot_lib STATIC
   ${implot_SOURCE_DIR}/implot_items.cpp)
 
 target_include_directories(implot_lib PUBLIC ${implot_SOURCE_DIR} ${imgui_SOURCE_DIR})
-target_link_libraries(${TARGET_NAME} PRIVATE implot_lib)
+target_link_libraries(miniginLib PUBLIC implot_lib)
  ########################################################################Imgui
-    target_link_libraries(imgui_lib PRIVATE ${SDL2_LIBRARIES})
+    target_link_libraries(imgui_lib PUBLIC ${SDL2_LIBRARIES})
 
 function(use_steamworks ENGINE_TARGET)
     set(STEAMWORKS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Minigin/3rdParty/steamworks")
@@ -258,12 +278,17 @@ function(use_steamworks ENGINE_TARGET)
 endfunction()
 
 use_steamworks(${TARGET_NAME})
+use_steamworks(miniginLib)
 
-add_custom_command(
-        TARGET ${TARGET_NAME}
-        POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/Minigin/steam_appid.txt
-        ${CMAKE_BINARY_DIR})
+target_include_directories(miniginLib PRIVATE
+  ${CMAKE_SOURCE_DIR}/Minigin/
+  ${CMAKE_SOURCE_DIR}/Minigin/Engine/
+  ${CMAKE_SOURCE_DIR}/Minigin/GameSource/
+  ${CMAKE_SOURCE_DIR}/Minigin/Components/
+  ${CMAKE_SOURCE_DIR}/Minigin/Managers/
+  ${CMAKE_SOURCE_DIR}/Minigin/Rendering/
+  ${glm_SOURCE_DIR}
+)
 
 target_include_directories(${TARGET_NAME} PRIVATE
   ${CMAKE_SOURCE_DIR}/Minigin/
