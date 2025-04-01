@@ -11,7 +11,7 @@ if(EMSCRIPTEN)
 else()
   set(TARGET_NAME minigin)
   set(TARGET_PARAM WIN32)
-endif()
+endif() 
 
 # list source files here
 add_executable(${TARGET_NAME} ${TARGET_PARAM}
@@ -23,36 +23,36 @@ add_executable(${TARGET_NAME} ${TARGET_PARAM}
     Minigin/GameSource/Achievements.cpp
 )
 
- add_library(miniginLib STATIC 
-    Minigin/Engine/GameObject.cpp
-    Minigin/Engine/Minigin.cpp
-    Minigin/Engine/Scene.cpp
-    Minigin/Engine/Commands.cpp
-    Minigin/Engine/EngineTime.cpp
-    Minigin/Engine/Transform.cpp
+add_library(miniginLib STATIC 
+   Minigin/Engine/GameObject.cpp
+   Minigin/Engine/Minigin.cpp
+   Minigin/Engine/Scene.cpp
+   Minigin/Engine/Commands.cpp
+   Minigin/Engine/EngineTime.cpp
+   Minigin/Engine/Transform.cpp
 
-    
-    Minigin/Rendering/Renderer.cpp
-    Minigin/Rendering/Texture2D.cpp
-    Minigin/Rendering/Font.cpp
+   
+   Minigin/Rendering/Renderer.cpp
+   Minigin/Rendering/Texture2D.cpp
+   Minigin/Rendering/Font.cpp
 
-    Minigin/Managers/InputManager.cpp
-    Minigin/Managers/ResourceManager.cpp
-    Minigin/Managers/SceneManager.cpp
-  
-    Minigin/Components/Component.cpp 
-    Minigin/Components/TextComponent.cpp
-    Minigin/Components/ImageComponent.cpp
-    Minigin/Components/FPSComponent.cpp
-    Minigin/Components/RotatorComponent.cpp 
-    Minigin/Components/GraphCacheComponent.cpp 
-    Minigin/Engine/SteamAchievements.cpp 
-    Minigin/Engine/Singleton.h
-    Minigin/Engine/Events.h
-    Minigin/Engine/EventDispatcher.h
-    Minigin/Engine/Minigin.h
- )
-  target_link_libraries(${TARGET_NAME} PUBLIC miniginLib)
+   Minigin/Managers/InputManager.cpp
+   Minigin/Managers/ResourceManager.cpp
+   Minigin/Managers/SceneManager.cpp
+ 
+   Minigin/Components/Component.cpp 
+   Minigin/Components/TextComponent.cpp
+   Minigin/Components/ImageComponent.cpp
+   Minigin/Components/FPSComponent.cpp
+   Minigin/Components/RotatorComponent.cpp 
+   Minigin/Components/GraphCacheComponent.cpp 
+   Minigin/Engine/SteamAchievements.cpp 
+   Minigin/Engine/Singleton.h
+   Minigin/Engine/Events.h
+   Minigin/Engine/EventDispatcher.h
+   Minigin/Engine/Minigin.h
+)
+ target_link_libraries(${TARGET_NAME} PUBLIC miniginLib)
 
 # enable c++20 features
 target_compile_features(${TARGET_NAME} PUBLIC cxx_std_20)
@@ -264,12 +264,12 @@ function(use_steamworks ENGINE_TARGET)
             ${CMAKE_CURRENT_SOURCE_DIR}/Minigin/3rdParty/steamworks/redistributable_bin)
 
     set(STEAMWORKS_LIB ${STEAMWORKS_LIB_DIR}/win64/steam_api64.lib)
-
+        
     add_custom_command(
             TARGET ${ENGINE_TARGET}
             POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy
-            ${STEAMWORKS_LIB_DIR}/win64/steam_api64.dll ${CMAKE_BINARY_DIR})
+            ${STEAMWORKS_LIB_DIR}/win64/steam_api64.dll $<TARGET_FILE_DIR:${TARGET_NAME}>)
 
     target_include_directories(${ENGINE_TARGET} PUBLIC ${STEAMWORKS_INCLUDE_DIR})
     target_link_libraries(${ENGINE_TARGET} PUBLIC ${STEAMWORKS_LIB})
@@ -280,7 +280,7 @@ endfunction()
 use_steamworks(${TARGET_NAME})
 use_steamworks(miniginLib)
 
-target_include_directories(miniginLib PRIVATE
+set(MINIGIN_INCLUDE_DIRS
   ${CMAKE_SOURCE_DIR}/Minigin/
   ${CMAKE_SOURCE_DIR}/Minigin/Engine/
   ${CMAKE_SOURCE_DIR}/Minigin/GameSource/
@@ -290,15 +290,8 @@ target_include_directories(miniginLib PRIVATE
   ${glm_SOURCE_DIR}
 )
 
-target_include_directories(${TARGET_NAME} PRIVATE
-  ${CMAKE_SOURCE_DIR}/Minigin/
-  ${CMAKE_SOURCE_DIR}/Minigin/Engine/
-  ${CMAKE_SOURCE_DIR}/Minigin/GameSource/
-  ${CMAKE_SOURCE_DIR}/Minigin/Components/
-  ${CMAKE_SOURCE_DIR}/Minigin/Managers/
-  ${CMAKE_SOURCE_DIR}/Minigin/Rendering/
-  ${glm_SOURCE_DIR}
-)
+target_include_directories(miniginLib PRIVATE ${MINIGIN_INCLUDE_DIRS})
+target_include_directories(${TARGET_NAME} PRIVATE ${MINIGIN_INCLUDE_DIRS})
 
 # compile at max warning level + treat warnings as errors
 target_compile_options(${TARGET_NAME} PRIVATE
