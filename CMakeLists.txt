@@ -30,7 +30,6 @@ add_library(miniginLib STATIC
    Minigin/Engine/Commands.cpp
    Minigin/Engine/EngineTime.cpp
    Minigin/Engine/Transform.cpp
-
    
    Minigin/Rendering/Renderer.cpp
    Minigin/Rendering/Texture2D.cpp

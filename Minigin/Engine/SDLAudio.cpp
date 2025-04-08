@@ -1,73 +1,111 @@
 #include "SDLAudio.h"
-
+#include <unordered_map>
+#include <SDL_mixer.h>
 #include <iostream>
-#include <ostream>
 
-#include "SDL.h"
-#include "SDL_log.h"
-
-SDLAudio::SDLAudio(): m_Music(nullptr)
+// Internal structure to hold sound data
+struct SoundAndChannel
 {
-    const int max_channels = 8;
-    Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, max_channels, 2048);
-}
+    Mix_Chunk* Sound;
+    int SoundChannel;
+};
 
-SDLAudio::~SDLAudio()
+// Implementation class: hides all SDL_mixer details from the header
+class SDLAudioImpl
 {
-    for (const auto& [id, soundAndChannel] : m_Sounds) 
-    {
-        Mix_FreeChunk(soundAndChannel.Sound);
+public:
+    SDLAudioImpl() : m_Music(nullptr)
+	{
+        // Set your desired audio configuration here
+        const int maxChannels = 8;
+        Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, maxChannels, 2048);
     }
-    Mix_FreeMusic(m_Music);
-    Mix_CloseAudio();
-}
 
-void SDLAudio::AddSound(std::string soundName, int soundChannel, const char* filePathForSound) /*Passing -1 to the soundChannel will play the sound on the next available channel*/
+    ~SDLAudioImpl()
+	{
+        for (const auto& [id, soundAndChannel] : m_Sounds) 
+        {
+            Mix_FreeChunk(soundAndChannel.Sound);
+        }
+        if (m_Music) 
+        {
+            Mix_FreeMusic(m_Music);
+        }
+        Mix_CloseAudio();
+    }
+
+    void AddSound(const std::string& soundName, int soundChannel, const char* filePathForSound)
+	{
+        Mix_Chunk* sound = Mix_LoadWAV(filePathForSound);
+        m_Sounds.emplace(soundName, SoundAndChannel{ sound, soundChannel });
+    }
+
+    void PlaySound(const std::string& soundName, int loops)
+	{
+        auto soundAndChannel = m_Sounds.find(soundName)->second;
+    	soundAndChannel.SoundChannel = Mix_PlayChannel(soundAndChannel.SoundChannel, soundAndChannel.Sound, loops);
+    }
+
+    void PauseSound(const std::string& soundName)
+	{
+        auto it = m_Sounds.find(soundName);
+    	Mix_Pause(it->second.SoundChannel);
+
+    }
+
+    void PauseAllSounds()
+	{
+        Mix_Pause(-1);
+    }
+
+    void StopSound(const std::string& soundName)
+	{
+        auto it = m_Sounds.find(soundName);
+    	Mix_HaltChannel(it->second.SoundChannel);
+    }
+
+    void StopAllSounds()
+	{
+        Mix_HaltChannel(-1);
+    }
+
+private:
+    std::unordered_map<std::string, SoundAndChannel> m_Sounds;
+    Mix_Music* m_Music;
+};
+
+// SDLAudio method implementations delegate to SDLAudioImpl
+
+SDLAudio::SDLAudio() : pImpl(std::make_unique<SDLAudioImpl>()) {}
+
+SDLAudio::~SDLAudio() = default;
+
+void SDLAudio::AddSound(std::string soundName, int soundChannel, const char* filePathForSound)
 {
-    m_Sounds.emplace(soundName, SoundAndChannel(Mix_LoadWAV(filePathForSound), soundChannel));
+    pImpl->AddSound(soundName, soundChannel, filePathForSound);
 }
 
 void SDLAudio::PlaySound(std::string soundName, int loops)
 {
-    auto it = m_Sounds.find(soundName);
-    if (it != m_Sounds.end()) 
-    {
-        auto& soundAndChannel = it->second;
-
-        // Check if the sound is valid
-        if (soundAndChannel.Sound != nullptr) 
-        {
-            soundAndChannel.SoundChannel = Mix_PlayChannel(soundAndChannel.SoundChannel, soundAndChannel.Sound, loops);
-        }
-        else 
-        {
-            std::cerr << "Sound is invalid: " << soundName << std::endl;
-        }
-    }
-
-    else 
-    {
-        std::cerr << "Sound not found: " << soundName << std::endl;
-    }
-    //
+    pImpl->PlaySound(soundName, loops);
 }
 
 void SDLAudio::PauseSound(std::string soundName)
 {
-    Mix_Pause(m_Sounds.find(soundName)->second.SoundChannel);
+    pImpl->PauseSound(soundName);
 }
 
 void SDLAudio::PauseAllSounds()
 {
-    Mix_Pause(-1);
+    pImpl->PauseAllSounds();
 }
 
 void SDLAudio::StopSound(std::string soundName)
 {
-    Mix_HaltChannel(m_Sounds.find(soundName)->second.SoundChannel);
+    pImpl->StopSound(soundName);
 }
 
 void SDLAudio::StopAllSounds()
 {
-    Mix_HaltChannel(-1);
+    pImpl->StopAllSounds();
 }
