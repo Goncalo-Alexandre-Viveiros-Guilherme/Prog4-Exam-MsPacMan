@@ -21,20 +21,27 @@
 #include "HealthComponent.h"
 #include "TextComponent.h"
 #include <Commands.h>
-#include <iostream>
 
 #include "Achievements.h"
 #include "HealthDisplayComponent.h"
 #include "InputManager.h"
 #include "PointDisplayComponent.h"
 #include "PointsComponent.h"
+#include "SDLAudio.h"
+#include "ServiceLocator.h"
 #include "SteamAchievements.h"
-#include "SceneManager.h"
+
 namespace fs = std::filesystem;
 
 void load()
 {
 	auto& scene = dae::SceneManager::GetInstance().CreateScene("Demo");
+
+	ServiceLocator::ProvideAudio(new SDLAudio());
+
+	auto& soundService = ServiceLocator::GetAudio();
+
+	soundService.PlaySound(-1);
 
 	auto go = std::make_shared<dae::GameObject>("BackgroundGOBJ");
 	go->AddComponent<ImageComponent>("background.tga");

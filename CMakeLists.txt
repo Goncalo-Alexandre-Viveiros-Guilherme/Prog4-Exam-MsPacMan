@@ -51,7 +51,10 @@ add_library(miniginLib STATIC
    Minigin/Engine/Events.h
    Minigin/Engine/EventDispatcher.h
    Minigin/Engine/Minigin.h
-)
+   Minigin/Engine/SDLAudio.cpp 
+   Minigin/Engine/Audio.h
+   Minigin/Engine/NullAudio.h
+   Minigin/Engine/ServiceLocator.cpp)
  target_link_libraries(${TARGET_NAME} PUBLIC miniginLib)
 
 # enable c++20 features
@@ -135,22 +138,45 @@ if (WIN32)
   endif()
   endif()
 
+  # add SDL2_mixer
+FetchContent_Declare(
+  SDL2_mixer
+  URL https://www.libsdl.org/projects/SDL_mixer/release/SDL2_mixer-devel-2.8.1-VC.zip
+  DOWNLOAD_NO_PROGRESS ON
+  DOWNLOAD_DIR ${CMAKE_BINARY_DIR}/downloads
+)
+FetchContent_GetProperties(SDL2_mixer)
+if(NOT SDL2_mixer_POPULATED)
+  FetchContent_Populate(SDL2_mixer)
+  set(SDL2_MIXER_INCLUDE_DIR ${sdl2_mixer_SOURCE_DIR}/include)
+  if (${CMAKE_SIZEOF_VOID_P} MATCHES 8)
+    set(SDL2_MIXER_LIBRARIES "${sdl2_mixer_SOURCE_DIR}/lib/x64/SDL2_mixer.lib")
+    set(SDL2_MIXER_LIBRARY_DLL "${sdl2_mixer_SOURCE_DIR}/lib/x64/SDL2_mixer.dll")
+  else()
+    set(SDL2_MIXER_LIBRARIES "${sdl2_mixer_SOURCE_DIR}/lib/x86/SDL2_mixer.lib")
+    set(SDL2_MIXER_LIBRARY_DLL "${sdl2_mixer_SOURCE_DIR}/lib/x86/SDL2_mixer.dll")
+  endif()
+endif()
+
   find_package(VLD CONFIG)
 
   # set all include directories
   #target_include_directories(${TARGET_NAME} PRIVATE
   target_include_directories(miniginLib PUBLIC
     ${VLD_INCLUDE_DIR}
-    ${SDL2_INCLUDE_DIR} 
-    ${SDL2_IMAGE_INCLUDE_DIR} 
-    ${SDL2_TTF_INCLUDE_DIR})
+    ${SDL2_INCLUDE_DIR}
+    ${SDL2_IMAGE_INCLUDE_DIR}
+    ${SDL2_TTF_INCLUDE_DIR}
+    ${SDL2_MIXER_INCLUDE_DIR}
+  )
   
   # set libraries to link with
   #target_link_libraries(${TARGET_NAME} PUBLIC
   target_link_libraries(miniginLib PUBLIC
-    ${SDL2_LIBRARIES} 
-    ${SDL2_IMAGE_LIBRARIES} 
-    ${SDL2_TTF_LIBRARIES} 
+    ${SDL2_LIBRARIES}
+    ${SDL2_IMAGE_LIBRARIES}
+    ${SDL2_TTF_LIBRARIES}
+    ${SDL2_MIXER_LIBRARIES}
     ${VLD_LIBRARY}
   )
    
@@ -185,6 +211,16 @@ elseif(NOT EMSCRIPTEN)
   set(SDL2TTF_INSTALL OFF)
   FetchContent_MakeAvailable(SDL2_ttf)
 
+  FetchContent_Declare(
+  SDL2_mixer
+  GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
+  GIT_TAG release-2.8.1
+  GIT_SHALLOW TRUE
+  GIT_PROGRESS TRUE
+  )
+  set(SDL2MIXER_INSTALL OFF)
+  FetchContent_MakeAvailable(SDL2_mixer)
+
  target_include_directories("${TARGET_NAME}" PUBLIC 
      ${sdl2_SOURCE_DIR}/include
     ${sdl2_image_SOURCE_DIR}/include
@@ -194,15 +230,15 @@ elseif(NOT EMSCRIPTEN)
     ${sdl2_SOURCE_DIR}/include
     ${sdl2_image_SOURCE_DIR}/include
     ${sdl2_ttf_SOURCE_DIR}
+    ${sdl2_mixer_SOURCE_DIR}
   )
   target_link_libraries("${TARGET_NAME}" PUBLIC 
      SDL2::SDL2main SDL2::SDL2 SDL2_image::SDL2_image SDL2_ttf::SDL2_ttf
   )
  target_link_libraries(miniginLib PUBLIC 
-    SDL2::SDL2main SDL2::SDL2 SDL2_image::SDL2_image SDL2_ttf::SDL2_ttf
+    SDL2::SDL2main SDL2::SDL2 SDL2_image::SDL2_image SDL2_ttf::SDL2_ttf SDL2_mixer::SDL2_mixer
   )
 
- 
 endif()
 
 # Link XInput for Windows
@@ -211,7 +247,16 @@ if(WIN32)
     target_link_libraries(miniginLib PUBLIC Xinput.lib)
 endif()
 
+# Add custom command to copy DLLs after the build
+add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${SDL2_LIBRARY_DLL}  # Copy SDL2.dll
+        $<TARGET_FILE_DIR:${TARGET_NAME}>)
 
+add_custom_command(TARGET ${TARGET_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${SDL2_MIXER_LIBRARY_DLL}  # Copy SDL2_mixer.dll
+        $<TARGET_FILE_DIR:${TARGET_NAME}>)
 
 ############################################################################### ImGui
 
