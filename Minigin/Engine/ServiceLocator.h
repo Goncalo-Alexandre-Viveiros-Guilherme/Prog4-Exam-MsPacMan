@@ -1,14 +1,14 @@
 #pragma once
 
-#include "NullAudio.h"
+#include <memory>
+#include <Audio.h>
 
 class ServiceLocator
 {
 public:
 	static Audio& GetAudio() { return *m_AudioService; }
-	static void ProvideAudio(Audio* service);
+	static void ProvideAudio(std::unique_ptr<Audio>&& service);
 
 private:
-	static Audio* m_AudioService;
-	static NullAudio m_NullAudioService;
+	static std::unique_ptr<Audio> m_AudioService;
 };

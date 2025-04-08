@@ -1,16 +1,8 @@
 #include "ServiceLocator.h"
 
-void ServiceLocator::ProvideAudio(Audio* service)
-{
-    if (service == nullptr)
-    {
-        m_AudioService = &m_NullAudioService;
-    }
-    else
-    {
-        m_AudioService = service;
-    }
-}
+std::unique_ptr<Audio> ServiceLocator::m_AudioService = nullptr;
 
-NullAudio ServiceLocator::m_NullAudioService;
-Audio* ServiceLocator::m_AudioService = &m_NullAudioService;
+void ServiceLocator::ProvideAudio(std::unique_ptr<Audio>&& service)
+{
+    m_AudioService = std::move(service);
+}

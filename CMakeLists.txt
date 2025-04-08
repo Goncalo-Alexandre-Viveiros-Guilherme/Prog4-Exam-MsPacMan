@@ -53,7 +53,6 @@ add_library(miniginLib STATIC
    Minigin/Engine/Minigin.h
    Minigin/Engine/SDLAudio.cpp 
    Minigin/Engine/Audio.h
-   Minigin/Engine/NullAudio.h
    Minigin/Engine/ServiceLocator.cpp)
  target_link_libraries(${TARGET_NAME} PUBLIC miniginLib)
 

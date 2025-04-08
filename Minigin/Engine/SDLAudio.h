@@ -1,24 +1,29 @@
 #pragma once
 
-#include <map>
-#include <string>
+#include <unordered_map>
 
 #include "Audio.h"
 #include "SDL_mixer.h"
 
+struct SoundAndChannel
+{
+	Mix_Chunk* Sound;
+	int SoundChannel;
+};
+
 class SDLAudio final : public Audio
 {
-public:
-SDLAudio();
-~SDLAudio() override;
-void PlaySound(int soundID) override;
-void PauseSound(int soundID) override; 
-void PauseAllSounds() override; 
-void StopSound(int soundID) override; 
-void StopAllSounds() override; 
-
-private:
-std::map<std::string, int> m_SoundIDs;
-std::map<int, Mix_Chunk*> m_Sounds;
-Mix_Music* m_Music;
+	public:
+	SDLAudio();
+	~SDLAudio() override;
+	void AddSound(std::string soundName,int soundChannel, const char* filePathForSound) override;
+	void PlaySound(std::string soundName,int loops) override;
+	void PauseSound(std::string soundName) override;
+	void PauseAllSounds() override; 
+	void StopSound(std::string soundName) override;
+	void StopAllSounds() override; 
+	
+	private:
+	std::unordered_map<std::string, SoundAndChannel> m_Sounds;
+	Mix_Music* m_Music;
 };
