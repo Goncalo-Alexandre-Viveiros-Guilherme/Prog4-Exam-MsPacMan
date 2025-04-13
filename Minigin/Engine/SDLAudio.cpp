@@ -86,61 +86,123 @@ private:
     Mix_Music* m_Music;
 };
 
-SDLAudio::SDLAudio() : pImpl(std::make_unique<SDLAudioImpl>()) {}
+SDLAudio::SDLAudio() : pImpl(std::make_unique<SDLAudioImpl>())
+{
+    m_WorkerThread = std::thread([this]() { this->Run(); });
+}
 
-SDLAudio::~SDLAudio() = default;
+SDLAudio::~SDLAudio()
+{
+    {
+        std::lock_guard<std::mutex> lock(m_QueueMutex);
+        m_Running = false;
+    }
+    m_Condition.notify_one(); // wake the thread if it's sleeping
+
+    if (m_WorkerThread.joinable())
+        m_WorkerThread.join();
+}
 
 void SDLAudio::AddSound(std::string soundName, int soundChannel, const char* filePathForSound)
 {
-    m_EventQueue.emplace([this, soundName, soundChannel, filePathForSound]() {pImpl->AddSound(soundName, soundChannel, filePathForSound);});
+    {
+        std::lock_guard<std::mutex> lock(m_QueueMutex);
+		m_EventQueue.emplace([this, soundName, soundChannel, filePathForSound]() {pImpl->AddSound(soundName, soundChannel, filePathForSound);});
+	}
+	m_Condition.notify_one();
 }
 
 void SDLAudio::AddMusic(const char* filePathForMusic)
 {
-    m_EventQueue.emplace([this, filePathForMusic]() {  pImpl->AddMusic(filePathForMusic); });
+    {
+        std::lock_guard<std::mutex> lock(m_QueueMutex);
+        m_EventQueue.emplace([this, filePathForMusic]() { pImpl->AddMusic(filePathForMusic); });
+    }
+    m_Condition.notify_one();
 }
 
 void SDLAudio::PlaySound(std::string soundName, int loops)
 {
-    m_EventQueue.emplace([this, loops, soundName]() { pImpl->PlaySound(soundName, loops);});
+    {
+        std::lock_guard<std::mutex> lock(m_QueueMutex);
+        m_EventQueue.emplace([this, loops, soundName]() { pImpl->PlaySound(soundName, loops);});
+    }
+    m_Condition.notify_one();
 }
 
 void SDLAudio::PlayMusic(int loops)
 {
-    m_EventQueue.emplace([this, loops]() {  pImpl->PlayMusic(loops); });
+    {
+        std::lock_guard<std::mutex> lock(m_QueueMutex);
+        m_EventQueue.emplace([this, loops]() {  pImpl->PlayMusic(loops); });
+    }
+    m_Condition.notify_one();
 }
 
 void SDLAudio::PauseSound(std::string soundName)
 {
-    m_EventQueue.emplace([this, soundName]() { pImpl->PauseSound(soundName); });
+    {
+        std::lock_guard<std::mutex> lock(m_QueueMutex);
+        m_EventQueue.emplace([this, soundName]() { pImpl->PauseSound(soundName); });
+    }
+    m_Condition.notify_one();
 }
 
 void SDLAudio::PauseMusic()
 {
-    m_EventQueue.emplace([this]() {pImpl->PauseMusic();});
+    {
+        std::lock_guard<std::mutex> lock(m_QueueMutex);
+        m_EventQueue.emplace([this]() {pImpl->PauseMusic();});
+    }
+    m_Condition.notify_one();
 }
 
 void SDLAudio::PauseAllSounds()
 {
-    m_EventQueue.emplace([this]() { pImpl->PauseAllSounds(); });
+    {
+        std::lock_guard<std::mutex> lock(m_QueueMutex);
+        m_EventQueue.emplace([this]() { pImpl->PauseAllSounds(); });
+    }
+    m_Condition.notify_one();
 }
 
 void SDLAudio::StopSound(std::string soundName)
 {
-    m_EventQueue.emplace([this, soundName]() {pImpl->StopSound(soundName);});
+    {
+        std::lock_guard<std::mutex> lock(m_QueueMutex);
+        m_EventQueue.emplace([this, soundName]() {pImpl->StopSound(soundName);});
+    }
+    m_Condition.notify_one();
 }
 
 void SDLAudio::StopAllSounds()
 {
-    m_EventQueue.emplace([this]() {  pImpl->StopAllSounds(); });
+    {
+        std::lock_guard<std::mutex> lock(m_QueueMutex);
+        m_EventQueue.emplace([this]() {  pImpl->StopAllSounds(); });
+    }
+    m_Condition.notify_one();
 }
 
 void SDLAudio::Run()
 {
-    while (!m_EventQueue.empty())
+    while (m_Running)
     {
-        auto& func = m_EventQueue.front(); 
-        func(); 
-        m_EventQueue.pop();
+        std::function<void()> task;
+
+        {
+            std::unique_lock<std::mutex> lock(m_QueueMutex);
+            m_Condition.wait(lock, [this]() {
+                return !m_EventQueue.empty() || !m_Running;
+                });
+
+            if (!m_Running && m_EventQueue.empty())
+                return;
+
+            task = std::move(m_EventQueue.front());
+            m_EventQueue.pop();
+        }
+
+        task();
     }
 }
