@@ -37,16 +37,14 @@ void load()
 {
 	auto& scene = dae::SceneManager::GetInstance().CreateScene("Demo");
 
-	ServiceLocator::ProvideAudio(std::make_unique<SDLAudio>());
-
 	auto& soundService = ServiceLocator::GetAudio();
 
 	std::string BoomSFX = "BoomSfx";
 	soundService.AddSound(BoomSFX, -1, "boom.wav");
-	soundService.PlaySound(BoomSFX);
+	soundService.PlaySound(BoomSFX,130);
 
-	soundService.AddMusic("skibidi.mp3");
-	soundService.PlayMusic(-1);
+	soundService.AddMusic("skibidi","skibidi.mp3");
+	soundService.PlayMusic("skibidi",100,-1);
 
 	auto go = std::make_shared<dae::GameObject>("BackgroundGOBJ");
 	go->AddComponent<ImageComponent>("background.tga");

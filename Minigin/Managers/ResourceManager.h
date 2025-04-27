@@ -3,7 +3,11 @@
 #include <string>
 #include <memory>
 #include <map>
+#include <unordered_set>
+
 #include "Singleton.h"
+
+class Audio;
 
 namespace dae
 {
@@ -14,6 +18,7 @@ namespace dae
 	public:
 		void Init(const std::filesystem::path& data);
 		std::shared_ptr<Texture2D> LoadTexture(const std::string& file);
+		void LoadAudio(const std::string& soundName, int soundChannel, const std::string& file);
 		std::shared_ptr<Font> LoadFont(const std::string& file, uint8_t size);
 	private:
 		friend class Singleton<ResourceManager>;

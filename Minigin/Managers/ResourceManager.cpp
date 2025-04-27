@@ -5,6 +5,9 @@
 #include "Renderer.h"
 #include "Texture2D.h"
 #include "Font.h"
+#include <Audio.h>
+
+#include "ServiceLocator.h"
 
 namespace fs = std::filesystem;
 

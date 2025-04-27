@@ -3,6 +3,8 @@
 #include <SDL_mixer.h>
 #include <iostream>
 
+#include "ResourceManager.h"
+
 struct SoundAndChannel
 {
     Mix_Chunk* Sound;
@@ -12,82 +14,161 @@ struct SoundAndChannel
 class SDLAudioImpl
 {
 public:
-    SDLAudioImpl() : m_Music(nullptr)
+    SDLAudioImpl()
 	{
         const int maxChannels = 8;
         Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, maxChannels, 2048);
     }
 
     ~SDLAudioImpl()
-	{
-        for (const auto& [id, soundAndChannel] : m_Sounds) 
+    {
+        for (auto& [_, chunk] : m_LoadedChunks)
         {
-            Mix_FreeChunk(soundAndChannel.Sound);
+            Mix_FreeChunk(chunk);
         }
-        if (m_Music) 
+        for (auto& [_, music] : m_LoadedMusic)
         {
-            Mix_FreeMusic(m_Music);
+            Mix_FreeMusic(music);
         }
+
         Mix_CloseAudio();
     }
 
     void AddSound(const std::string& soundName, int soundChannel, const char* filePathForSound)
-	{
-        Mix_Chunk* sound = Mix_LoadWAV(filePathForSound);
-        m_Sounds.emplace(soundName, SoundAndChannel{ sound, soundChannel });
-    }
-
-    void AddMusic(const char* filePathForMusic)
     {
-        m_Music = Mix_LoadMUS(filePathForMusic);
+        const auto fullPath = m_dataPath / filePathForSound;
+        const auto filename = std::filesystem::path(fullPath).filename().string();
+
+        Mix_Chunk* chunk = nullptr;
+
+        // Check if this file has already been loaded
+        auto it = m_LoadedChunks.find(filename);
+        if (it != m_LoadedChunks.end())
+        {
+            chunk = it->second;
+        }
+        else
+        {
+            chunk = Mix_LoadWAV(fullPath.string().c_str());
+            if (!chunk)
+            {
+                throw std::runtime_error(std::string("Failed to load sound: ") + Mix_GetError());
+            }
+            m_LoadedChunks[filename] = chunk;
+        }
+
+        m_Sounds.emplace(soundName, SoundAndChannel{ chunk, soundChannel });
     }
 
-    void PlaySound(const std::string& soundName, int loops)
-	{
+    void AddMusic(const std::string& musicName, const char* filePathForMusic)
+    {
+        const auto fullPath = m_dataPath / filePathForMusic;
+        const auto filename = std::filesystem::path(fullPath).filename().string();
+
+        // Check if this music file has already been loaded
+        auto it = m_LoadedMusic.find(filename);
+        if (it != m_LoadedMusic.end())
+        {
+            return;
+        }
+
+        Mix_Music* music = Mix_LoadMUS(fullPath.string().c_str());
+        if (!music)
+        {
+            throw std::runtime_error(std::string("Failed to load music: ") + Mix_GetError());
+        }
+        m_LoadedMusic[filename] = music;
+			
+        m_Musics.emplace(musicName, music);
+    }
+
+    void PlaySound(const std::string& soundName, int volume, int loops) const
+    {
         auto soundAndChannel = m_Sounds.find(soundName)->second;
     	soundAndChannel.SoundChannel = Mix_PlayChannel(soundAndChannel.SoundChannel, soundAndChannel.Sound, loops);
+        Mix_VolumeChunk(soundAndChannel.Sound, volume);
     }
 
-    void PlayMusic(int loops)
+    void PlayMusic(const std::string& musicName, int volume, int loops) const
     {
-        Mix_PlayMusic(m_Music, loops);
+        auto it = m_Musics.find(musicName);
+        if (it != m_Musics.end())
+        {
+            Mix_PlayMusic(it->second, loops);
+            Mix_VolumeMusic(volume);
+        }
+        else
+        {
+            throw std::runtime_error("Music not found: " + musicName);
+        }
     }
 
-    void PauseSound(const std::string& soundName)
-	{
-        auto soundAndChannel = m_Sounds.find(soundName);
+    void PauseSound(const std::string& soundName) const
+    {
+        const auto soundAndChannel = m_Sounds.find(soundName);
     	Mix_Pause(soundAndChannel->second.SoundChannel);
-
     }
 
-    void PauseMusic()
+    static void PauseMusic()
     {
         Mix_PauseMusic();
     }
 
-    void PauseAllSounds()
+    static void PauseAllSounds()
 	{
         Mix_Pause(-1);
     }
 
-    void StopSound(const std::string& soundName)
-	{
-        auto soundAndChannel = m_Sounds.find(soundName);
+    void StopSound(const std::string& soundName) const
+    {
+        const auto soundAndChannel = m_Sounds.find(soundName);
     	Mix_HaltChannel(soundAndChannel->second.SoundChannel);
     }
 
-    void StopAllSounds()
+    static void StopAllSounds()
 	{
         Mix_HaltChannel(-1);
     }
 
+    static void SetAllAudioVolume(const int volume)
+    {
+        Mix_Volume(-1, volume);
+    }
+
+    static void SetChannelVolume(int channel, int volume)
+    {
+        Mix_Volume(channel, volume);
+    }
+
+    void SetSoundVolume(const std::string& soundName, const int volume) const
+    {
+        const auto soundAndChannel = m_Sounds.find(soundName)->second;
+        Mix_VolumeChunk(soundAndChannel.Sound, volume);
+    }
+
+    static void SetMusicVolume(const int volume)
+    {
+        Mix_VolumeMusic(volume);
+    }
+
+    void SetDataPath(const std::filesystem::path& data)
+    {
+        m_dataPath = data;
+    }
+
 private:
     std::unordered_map<std::string, SoundAndChannel> m_Sounds;
-    Mix_Music* m_Music;
+    std::unordered_map<std::string, Mix_Chunk*> m_LoadedChunks;
+    std::unordered_map<std::string, Mix_Music*> m_LoadedMusic;
+    std::unordered_map<std::string, Mix_Music*> m_Musics;
+    std::filesystem::path m_dataPath;
 };
 
-SDLAudio::SDLAudio() : pImpl(std::make_unique<SDLAudioImpl>())
+SDLAudio::SDLAudio(const std::filesystem::path& data)
 {
+    m_pImpl = std::make_unique<SDLAudioImpl>();
+    m_pImpl->SetDataPath(data);
+
     m_WorkerThread = std::thread([this]() { this->Run(); });
 }
 
@@ -107,43 +188,44 @@ void SDLAudio::AddSound(std::string soundName, int soundChannel, const char* fil
 {
     {
         std::lock_guard<std::mutex> lock(m_QueueMutex);
-		m_EventQueue.emplace([this, soundName, soundChannel, filePathForSound]() {pImpl->AddSound(soundName, soundChannel, filePathForSound);});
+		m_EventQueue.emplace([this, soundName, soundChannel, filePathForSound]() {m_pImpl->AddSound(soundName, soundChannel, filePathForSound);});
 	}
 	m_Condition.notify_one();
 }
 
-void SDLAudio::AddMusic(const char* filePathForMusic)
+void SDLAudio::AddMusic(const std::string& musicName, const char* filePathForMusic)
 {
     {
         std::lock_guard<std::mutex> lock(m_QueueMutex);
-        m_EventQueue.emplace([this, filePathForMusic]() { pImpl->AddMusic(filePathForMusic); });
+        m_EventQueue.emplace([this, musicName, filePathForMusic]() { m_pImpl->AddMusic(musicName, filePathForMusic); });
     }
     m_Condition.notify_one();
 }
 
-void SDLAudio::PlaySound(std::string soundName, int loops)
+void SDLAudio::PlaySound(std::string soundName, int volume, int loops)
 {
     {
         std::lock_guard<std::mutex> lock(m_QueueMutex);
-        m_EventQueue.emplace([this, loops, soundName]() { pImpl->PlaySound(soundName, loops);});
+        m_EventQueue.emplace([this, loops, soundName, volume]() { m_pImpl->PlaySound(soundName, volume ,loops);});
     }
     m_Condition.notify_one();
 }
 
-void SDLAudio::PlayMusic(int loops)
+void SDLAudio::PlayMusic(const std::string& musicName, int volume, int loops)
 {
     {
         std::lock_guard<std::mutex> lock(m_QueueMutex);
-        m_EventQueue.emplace([this, loops]() {  pImpl->PlayMusic(loops); });
+        m_EventQueue.emplace([this, loops, musicName, volume]() { m_pImpl->PlayMusic(musicName, volume, loops); });
     }
     m_Condition.notify_one();
 }
+
 
 void SDLAudio::PauseSound(std::string soundName)
 {
     {
         std::lock_guard<std::mutex> lock(m_QueueMutex);
-        m_EventQueue.emplace([this, soundName]() { pImpl->PauseSound(soundName); });
+        m_EventQueue.emplace([this, soundName]() { m_pImpl->PauseSound(soundName); });
     }
     m_Condition.notify_one();
 }
@@ -152,7 +234,7 @@ void SDLAudio::PauseMusic()
 {
     {
         std::lock_guard<std::mutex> lock(m_QueueMutex);
-        m_EventQueue.emplace([this]() {pImpl->PauseMusic();});
+        m_EventQueue.emplace([this]() {m_pImpl->PauseMusic();});
     }
     m_Condition.notify_one();
 }
@@ -161,7 +243,7 @@ void SDLAudio::PauseAllSounds()
 {
     {
         std::lock_guard<std::mutex> lock(m_QueueMutex);
-        m_EventQueue.emplace([this]() { pImpl->PauseAllSounds(); });
+        m_EventQueue.emplace([this]() { m_pImpl->PauseAllSounds(); });
     }
     m_Condition.notify_one();
 }
@@ -170,7 +252,7 @@ void SDLAudio::StopSound(std::string soundName)
 {
     {
         std::lock_guard<std::mutex> lock(m_QueueMutex);
-        m_EventQueue.emplace([this, soundName]() {pImpl->StopSound(soundName);});
+        m_EventQueue.emplace([this, soundName]() {m_pImpl->StopSound(soundName);});
     }
     m_Condition.notify_one();
 }
@@ -179,7 +261,43 @@ void SDLAudio::StopAllSounds()
 {
     {
         std::lock_guard<std::mutex> lock(m_QueueMutex);
-        m_EventQueue.emplace([this]() {  pImpl->StopAllSounds(); });
+        m_EventQueue.emplace([this]() {  m_pImpl->StopAllSounds(); });
+    }
+    m_Condition.notify_one();
+}
+
+void SDLAudio::SetAllAudioVolume(int volume)
+{
+    {
+        std::lock_guard<std::mutex> lock(m_QueueMutex);
+        m_EventQueue.emplace([this, volume]() {  m_pImpl->SetAllAudioVolume(volume); });
+    }
+    m_Condition.notify_one();
+}
+
+void SDLAudio::SetChannelVolume(int channel, int volume)
+{
+    {
+        std::lock_guard<std::mutex> lock(m_QueueMutex);
+        m_EventQueue.emplace([this, volume, channel]() {  m_pImpl->SetChannelVolume(channel ,volume); });
+    }
+    m_Condition.notify_one();
+}
+
+void SDLAudio::SetSoundVolume(std::string soundName, int volume)
+{
+    {
+        std::lock_guard<std::mutex> lock(m_QueueMutex);
+        m_EventQueue.emplace([this, volume, soundName]() {  m_pImpl->SetSoundVolume(soundName ,volume); });
+    }
+    m_Condition.notify_one();
+}
+
+void SDLAudio::SetMusicVolume(int volume)
+{
+    {
+        std::lock_guard<std::mutex> lock(m_QueueMutex);
+        m_EventQueue.emplace([this, volume]() {  m_pImpl->SetMusicVolume(volume); });
     }
     m_Condition.notify_one();
 }

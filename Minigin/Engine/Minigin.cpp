@@ -21,6 +21,8 @@
 #include "ResourceManager.h"
 #include "Scene.h"
 #include "EngineTime.h"
+#include "SDLAudio.h"
+#include "ServiceLocator.h"
 #include "steam_api_common.h"
 
 SDL_Window* g_window{};
@@ -94,6 +96,7 @@ dae::Minigin::Minigin(const std::filesystem::path &dataPath)
 
 	Renderer::GetInstance().Init(g_window);
 	ResourceManager::GetInstance().Init(dataPath);
+	ServiceLocator::ProvideAudio(std::make_unique<SDLAudio>(dataPath));
 }
 
 dae::Minigin::~Minigin()
