@@ -1,11 +1,14 @@
 #pragma once
 
+
+
 namespace dae
 { 
 class GameObject;
 }
 class HealthComponent;
 class PointsComponent;
+class MoveComponent;
 
 class Command
 {
@@ -17,13 +20,13 @@ public:
 class MoveCommand : public Command
 {
 public:
-	MoveCommand(float speedX, float speedY, dae::GameObject* actor);
+	MoveCommand(float speedX, float speedY, MoveComponent* moveComponent);
 	void Execute() override;
 
 private:
 	float m_SpeedY;
 	float m_SpeedX;
-	dae::GameObject* m_Actor;
+	MoveComponent* m_MoveComponent;
 };
 
 class AddHealthCommand : public Command

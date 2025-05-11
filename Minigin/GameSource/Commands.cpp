@@ -1,17 +1,15 @@
 #include "Commands.h"
-#include "GameObject.h"
-#include <EngineTime.h>
 #include "HealthComponent.h"
+#include "MoveComponent.h"
 #include "PointsComponent.h"
 
-MoveCommand::MoveCommand(float speedX,float speedY, dae::GameObject* actor): m_SpeedX(speedX),m_SpeedY(speedY),m_Actor(actor)
+MoveCommand::MoveCommand(float speedX,float speedY, MoveComponent* moveComponent): m_SpeedY(speedY),m_SpeedX(speedX), m_MoveComponent(moveComponent)
 {
 }
 
 void MoveCommand::Execute()
 {
-    auto& pos = m_Actor->GetLocalPosition();
-    m_Actor->SetLocalPosition(pos.x + (m_SpeedX * Time::GetInstance().GetDeltaTime()), pos.y + (m_SpeedY * Time::GetInstance().GetDeltaTime()));
+    m_MoveComponent->SetSpeed(m_SpeedX, m_SpeedY);
 }
 
 AddHealthCommand::AddHealthCommand(float amountToAdd, HealthComponent* healthComponent): m_ValueToAdd(amountToAdd),m_HealthComponent(healthComponent)

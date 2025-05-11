@@ -16,18 +16,21 @@ endif()
 # list source files here
 add_executable(${TARGET_NAME} ${TARGET_PARAM}
     Minigin/Main.cpp
-    Minigin/Components/HealthComponent.cpp 
-    Minigin/Components/HealthDisplayComponent.cpp  
-    Minigin/Components/PointsComponent.cpp
-    Minigin/Components/PointsDisplayComponent.cpp 
+    Minigin/GameSource/Components/HealthComponent.cpp
+    Minigin/GameSource/Components/HealthDisplayComponent.cpp
+    Minigin/GameSource/Components/PointsComponent.cpp
+    Minigin/GameSource/Components/PointsDisplayComponent.cpp
     Minigin/GameSource/Achievements.cpp
-)
+    Minigin/GameSource/MsPacmanCode.cpp
+    Minigin/GameSource/GameObjects/MsPacMan.cpp
+    Minigin/GameSource/Events.h 
+    Minigin/GameSource/Components/MoveComponent.cpp
+   Minigin/GameSource/Commands.cpp)
 
 add_library(miniginLib STATIC 
    Minigin/Engine/GameObject.cpp
    Minigin/Engine/Minigin.cpp
    Minigin/Engine/Scene.cpp
-   Minigin/Engine/Commands.cpp
    Minigin/Engine/EngineTime.cpp
    Minigin/Engine/Transform.cpp
    
@@ -47,11 +50,10 @@ add_library(miniginLib STATIC
    Minigin/Components/GraphCacheComponent.cpp 
    Minigin/Engine/SteamAchievements.cpp 
    Minigin/Engine/Singleton.h
-   Minigin/Engine/Events.h
    Minigin/Engine/EventDispatcher.h
    Minigin/Engine/Minigin.h
-   Minigin/Engine/SDLAudio.cpp 
    Minigin/Engine/Audio.h
+   Minigin/Engine/SDLAudio.cpp 
    Minigin/Engine/ServiceLocator.cpp)
  target_link_libraries(${TARGET_NAME} PUBLIC miniginLib)
 
@@ -327,6 +329,8 @@ set(MINIGIN_INCLUDE_DIRS
   ${CMAKE_SOURCE_DIR}/Minigin/
   ${CMAKE_SOURCE_DIR}/Minigin/Engine/
   ${CMAKE_SOURCE_DIR}/Minigin/GameSource/
+  ${CMAKE_SOURCE_DIR}/Minigin/GameSource/Components/
+  ${CMAKE_SOURCE_DIR}/Minigin/GameSource/GameObjects/
   ${CMAKE_SOURCE_DIR}/Minigin/Components/
   ${CMAKE_SOURCE_DIR}/Minigin/Managers/
   ${CMAKE_SOURCE_DIR}/Minigin/Rendering/

@@ -10,7 +10,6 @@
 #include <condition_variable>
 #include <atomic>
 #include <iostream>
-#include <unordered_set>
 
 namespace std::filesystem
 {
@@ -19,7 +18,8 @@ namespace std::filesystem
 
 class SDLAudioImpl;
 
-class SDLAudio final : public Audio {
+class SDLAudio final : public Audio
+{
 public:
     SDLAudio(const std::filesystem::path& data);
     ~SDLAudio() override;

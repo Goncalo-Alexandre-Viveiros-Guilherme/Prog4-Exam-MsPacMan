@@ -82,7 +82,7 @@ dae::Minigin::Minigin(const std::filesystem::path &dataPath)
 	}
 
 	g_window = SDL_CreateWindow(
-		"Programming 4 assignment",
+		"Ms.Pacman - Gonçalo Guilherme GD10",
 		SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED,
 		640,

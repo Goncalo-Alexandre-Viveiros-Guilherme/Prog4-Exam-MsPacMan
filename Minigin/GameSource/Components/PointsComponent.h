@@ -1,6 +1,6 @@
 #pragma once
 #include "Component.h"
-#include "Events.h"
+#include "EventDispatcher.h"
 
 class PointsComponent : public Component, public Event
 {

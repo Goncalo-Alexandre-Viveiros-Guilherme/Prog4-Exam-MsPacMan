@@ -1,4 +1,6 @@
 #include "Achievements.h"
+
+#include "Events.h"
 #include "SteamAchievements.h"
 
 void Achievements::NotifyAchievements() const

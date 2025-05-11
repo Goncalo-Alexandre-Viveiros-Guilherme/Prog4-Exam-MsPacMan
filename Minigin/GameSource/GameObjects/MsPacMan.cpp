@@ -1,0 +1,52 @@
+#include "MsPacMan.h"
+#include "EventDispatcher.h"
+#include "GameObject.h"
+#include "Commands.h"
+#include "ImageComponent.h"
+#include "HealthComponent.h"
+#include "MoveComponent.h"
+#include "InputManager.h"
+#include "PointsComponent.h"
+#include "Scene.h"
+
+MsPacMan::MsPacMan(dae::Scene& scene) : m_MainGameObject(nullptr), m_CurrentState(FSM::States::NullStarterState)
+{
+	m_MainGameObject = std::make_shared<dae::GameObject>("MsPacMan");
+	m_MainGameObject->AddComponent<ImageComponent>("MsPacMan.png");
+	m_MainGameObject->AddComponent<MoveComponent>();
+	m_MainGameObject->AddComponent<HealthComponent>(3.f);
+	m_MainGameObject->AddComponent<PointsComponent>();
+	m_MainGameObject->SetLocalPosition(300, 250);
+	scene.Add(m_MainGameObject);
+
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({ SDL_SCANCODE_W }, {}, Down, 0.f, -250.0f,	m_MainGameObject->GetComponent<MoveComponent>());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({ SDL_SCANCODE_S }, {}, Down, 0.f, 250.0f,	m_MainGameObject->GetComponent<MoveComponent>());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({ SDL_SCANCODE_A }, {}, Down, -250.0f, 0.f,	m_MainGameObject->GetComponent<MoveComponent>());
+	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({ SDL_SCANCODE_D }, {}, Down, 250.0f, 0.f,	m_MainGameObject->GetComponent<MoveComponent>());
+
+	dae::InputManager::GetInstance().AddInputMapping<AddHealthCommand>({ SDL_SCANCODE_C }, {}, Pressed, -1.f,	m_MainGameObject->GetComponent<HealthComponent>());
+	dae::InputManager::GetInstance().AddInputMapping<AddPointsCommand>({ SDL_SCANCODE_Z }, {}, Pressed, 10.f,	m_MainGameObject->GetComponent<PointsComponent>());
+	dae::InputManager::GetInstance().AddInputMapping<AddPointsCommand>({ SDL_SCANCODE_X }, {}, Pressed, 100.f,	m_MainGameObject->GetComponent<PointsComponent>());
+
+	EventDispatcher::GetInstance().AddListener<FSM::NewState>
+		(this->GetGameObject(), [this](const FSM::NewState& event)
+			{
+				SwapState(event.m_NewState);
+			}
+		);
+}
+
+MsPacMan::~MsPacMan()
+{
+	
+}
+
+void MsPacMan::SwapState(const FSM::States newState)
+{
+	m_CurrentState = newState;
+}
+
+dae::GameObject* MsPacMan::GetGameObject() const
+{
+	return m_MainGameObject.get();
+}

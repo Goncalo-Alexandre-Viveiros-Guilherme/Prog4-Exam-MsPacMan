@@ -4,10 +4,14 @@
 #include <typeindex>
 #include <unordered_map>
 #include <vector>
-#include <memory>
-#include "Events.h"
 #include "Singleton.h"
 #include "GameObject.h"  // Include the GameObject class
+
+class Event
+{
+public:
+    virtual ~Event() = default;
+};
 
 class EventDispatcher : public dae::Singleton<EventDispatcher>
 {
@@ -33,14 +37,13 @@ public:
     void Dispatch(const Event& event,const dae::GameObject* gameObj) const
     {
         auto it = m_Listeners.find(typeid(event));
-        if (it != m_Listeners.end())
+        if (it == m_Listeners.end()) return;
+
+        for (const auto& [targetObj, callback] : it->second)
         {
-            for (const auto& [gameObject, callback] : it->second)
+            if ((targetObj == gameObj || targetObj == nullptr) && callback)
             {
-                if (gameObject == gameObj || gameObject == nullptr)
-                {
-                    callback(event);
-                }
+                callback(event);
             }
         }
     }
