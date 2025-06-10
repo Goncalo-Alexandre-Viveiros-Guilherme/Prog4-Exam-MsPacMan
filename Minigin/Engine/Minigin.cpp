@@ -14,14 +14,14 @@
 
 #include <thread>
 
+#include "BoxCollisionService.h"
 #include "GameObject.h"
 #include "InputManager.h"
 #include "SceneManager.h"
 #include "Renderer.h"
 #include "ResourceManager.h"
-#include "Scene.h"
 #include "EngineTime.h"
-#include "SDLAudio.h"
+#include "SDLAudioService.h"
 #include "ServiceLocator.h"
 #include "steam_api_common.h"
 
@@ -85,8 +85,8 @@ dae::Minigin::Minigin(const std::filesystem::path &dataPath)
 		"Ms.Pacman - Gonçalo Guilherme GD10",
 		SDL_WINDOWPOS_CENTERED,
 		SDL_WINDOWPOS_CENTERED,
-		640,
-		480,
+		672,
+		794,
 		SDL_WINDOW_OPENGL
 	);
 	if (g_window == nullptr) 
@@ -98,10 +98,14 @@ dae::Minigin::Minigin(const std::filesystem::path &dataPath)
 	ResourceManager::GetInstance().Init(dataPath);
 
 #if _DEBUG
-	ServiceLocator::ProvideAudio(
+	ServiceLocator::ProvideAudioService(
 		std::make_unique<LoggingSoundSystem>(std::make_unique<SDLAudio>(dataPath)));
+
+	ServiceLocator::ProvideCollisionService(std::make_unique<BoxCollisionService>());
 #else
-	ServiceLocator::ProvideAudio(std::make_unique<SDLAudio>(dataPath));
+	ServiceLocator::ProvideAudioService(std::make_unique<SDLAudio>(dataPath));
+
+	ServiceLocator::ProvideCollisionService(std::make_unique<BoxCollisionService>());
 #endif
 	
 }

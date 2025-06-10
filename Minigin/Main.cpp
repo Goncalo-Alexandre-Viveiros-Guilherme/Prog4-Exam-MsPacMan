@@ -13,14 +13,15 @@
 
 #include "MsPacmanCode.h"
 #include <filesystem>
-#include "SDLAudio.h"
+#include "SDLAudioService.h"
 #include "SteamAchievements.h"
 
 namespace fs = std::filesystem;
 
 void load()
 {
-	MsPacmanCode::LoadGameCode();
+	MsPacmanCode msPacmanCode {};
+	msPacmanCode.LoadGameCode();
 }
 
 int main(int, char*[])

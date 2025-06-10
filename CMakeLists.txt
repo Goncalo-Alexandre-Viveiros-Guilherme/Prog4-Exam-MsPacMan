@@ -42,19 +42,24 @@ add_library(miniginLib STATIC
    Minigin/Managers/ResourceManager.cpp
    Minigin/Managers/SceneManager.cpp
  
-   Minigin/Components/Component.cpp 
-   Minigin/Components/TextComponent.cpp
-   Minigin/Components/ImageComponent.cpp
-   Minigin/Components/FPSComponent.cpp
-   Minigin/Components/RotatorComponent.cpp 
-   Minigin/Components/GraphCacheComponent.cpp 
+   Minigin/Engine/Components/Component.cpp 
+   Minigin/Engine/Components/TextComponent.cpp
+   Minigin/Engine/Components/ImageComponent.cpp
+   Minigin/Engine/Components/FPSComponent.cpp
+   Minigin/Engine/Components/RotatorComponent.cpp 
+   Minigin/Engine/Components/GraphCacheComponent.cpp 
+   Minigin/Engine/Components/BoxColliderComponent.cpp
+   Minigin/Engine/Components/SpriteComponent.cpp
    Minigin/Engine/SteamAchievements.cpp 
    Minigin/Engine/Singleton.h
    Minigin/Engine/EventDispatcher.h
    Minigin/Engine/Minigin.h
-   Minigin/Engine/Audio.h
-   Minigin/Engine/SDLAudio.cpp 
-   Minigin/Engine/ServiceLocator.cpp)
+   Minigin/Engine/AudioService.h
+   Minigin/Engine/SDLAudioService.cpp
+   Minigin/Engine/ServiceLocator.cpp 
+   Minigin/Engine/CollisionService.h 
+   Minigin/Engine/BoxCollisionService.cpp
+   Minigin/Engine/Shapes.h)
  target_link_libraries(${TARGET_NAME} PUBLIC miniginLib)
 
 # enable c++20 features
@@ -328,6 +333,7 @@ use_steamworks(miniginLib)
 set(MINIGIN_INCLUDE_DIRS
   ${CMAKE_SOURCE_DIR}/Minigin/
   ${CMAKE_SOURCE_DIR}/Minigin/Engine/
+  ${CMAKE_SOURCE_DIR}/Minigin/Engine/Components/
   ${CMAKE_SOURCE_DIR}/Minigin/GameSource/
   ${CMAKE_SOURCE_DIR}/Minigin/GameSource/Components/
   ${CMAKE_SOURCE_DIR}/Minigin/GameSource/GameObjects/

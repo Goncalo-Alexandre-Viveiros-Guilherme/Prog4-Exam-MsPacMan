@@ -12,30 +12,26 @@
 #include "ServiceLocator.h"
 #include "TextComponent.h"
 
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <unordered_map>
+#include <functional>
+#include <memory>
+#include <iostream>
+
+#include "BoxColliderComponent.h"
+#include "SpriteComponent.h"
+
+MsPacmanCode::MsPacmanCode()
+{
+}
+
 void MsPacmanCode::InitializeResources()
 {
+	InitSpawnMap();
+	
 	auto& scene = dae::SceneManager::GetInstance().CreateScene("MsPacman");
-
-	auto go = std::make_shared<dae::GameObject>("BackgroundGOBJ");
-	go->AddComponent<ImageComponent>("background.tga");
-	scene.Add(go);
-
-	go = std::make_shared<dae::GameObject>("LogoGOBJ");
-	go->AddComponent<ImageComponent>("logo.tga");
-	go->SetLocalPosition(216, 180);
-	scene.Add(go);
-
-	go = std::make_shared<dae::GameObject>("TextGOBJ");
-	auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 36);
-	go->AddComponent<TextComponent>("Programming 4 Assignment", font);
-	go->SetLocalPosition(80, 20);
-	scene.Add(go);
-
-	go = std::make_shared<dae::GameObject>("FPSGOBJ");
-	go->AddComponent<TextComponent>("0", font);
-	go->AddComponent<FPSComponent>();
-	go->SetLocalPosition(0, 0);
-	scene.Add(go);
 
 //	auto pacman = std::make_shared<dae::GameObject>("PacMan");
 //	pacman->AddComponent<ImageComponent>("PacMan.png");
@@ -44,22 +40,6 @@ void MsPacmanCode::InitializeResources()
 //	pacman->AddComponent<PointsComponent>();
 //	pacman->SetLocalPosition(250, 250);
 //	scene.Add(pacman);
-
-	MsPacMan msPacMan{scene};
-
-	font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 18);
-
-	go = std::make_shared<dae::GameObject>("MsPacManLives");
-	go->SetLocalPosition(10, 175);
-	go->AddComponent<TextComponent>("# lives: 3", font);
-	go->AddComponent<HealthDisplayComponent>(msPacMan.GetGameObject());
-	scene.Add(go);
-
-	go = std::make_shared<dae::GameObject>("MsPacmanPoints");
-	go->SetLocalPosition(10, 200);
-	go->AddComponent<TextComponent>("Score: 0", font);
-	go->AddComponent<PointDisplayComponent>(msPacMan.GetGameObject());
-	scene.Add(go);
 
 //	go = std::make_shared<dae::GameObject>("PacManLives");
 //	go->SetLocalPosition(10, 125);
@@ -73,17 +53,9 @@ void MsPacmanCode::InitializeResources()
 //	go->AddComponent<PointDisplayComponent>(pacman.get());
 //	scene.Add(go);
 
-	font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 16);
+	auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 16);
 
-	go = std::make_shared<dae::GameObject>("Explanation Text Pacman");
-	go->SetLocalPosition(10, 70);
-	go->AddComponent<TextComponent>("Use the D-Pad to move Pacman, X to inflict damage, A and B to pick up pellets", font);
-	scene.Add(go);
-
-	go = std::make_shared<dae::GameObject>("Explanation Text MsPacMan");
-	go->SetLocalPosition(10, 95);
-	go->AddComponent<TextComponent>("Use the WASD to move MsPacman, C to inflict damage, Z and X to pick up pellets", font);
-	scene.Add(go);
+	ParseCSVAndSpawn("level1.csv", scene);
 
 //	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadUp }, KeyState::Down, 0.f, -500.0f, pacman->GetComponent<MoveComponent>());
 //	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadDown }, KeyState::Down, 0.f, 500.0f, pacman->GetComponent<MoveComponent>());
@@ -100,7 +72,7 @@ void MsPacmanCode::LoadGameCode()
 {
 	InitializeResources();
 
-	auto& soundService = ServiceLocator::GetAudio();
+	auto& soundService = ServiceLocator::GetAudioService();
 
 	//	std::string BoomSFX = "BoomSfx";
 	//	soundService.AddSound(BoomSFX, -1, "boom.wav");
@@ -108,4 +80,120 @@ void MsPacmanCode::LoadGameCode()
 
 	soundService.AddMusic("skibidi", "Sounds/ms_start.wav");
 	soundService.PlayMusic("skibidi", 100, 1);
+}
+
+void MsPacmanCode::AddWall(dae::Scene& scene, int col, int row ,int srcX, int srcY)
+{
+	auto wall = std::make_shared<dae::GameObject>("Wall");
+	SDL_Rect srcRect{ srcX,srcY,8,8 };
+	wall->AddComponent<SpriteComponent>("WallsTransparent.png", srcRect, 8,8);
+	wall->GetComponent<SpriteComponent>()->SetScale(3, 3);
+	wall->AddComponent<BoxColliderComponent>(true,true,8.f,8.f,true);
+	wall->SetLocalPosition((col * 8.f) * 3 , (row * 8.f) * 3);
+	scene.Add(wall);
+}
+
+void MsPacmanCode::InitSpawnMap()
+{
+	for (int i = 0; i <= 8; ++i)
+	{
+		const int spriteOffsetX = (i * 8) + (2 * i);
+		m_SpawnMap[i] = [spriteOffsetX, this](dae::Scene& scene, int x, int y) {
+			AddWall(scene, x, y, spriteOffsetX, 0); };
+	}
+
+	m_SpawnMap[10] = [](dae::Scene& scene, int x, int y) {
+		MsPacMan msPacMan(scene);
+		msPacMan.GetGameObject()->SetLocalPosition(x * 8.f + 20, y * 8.f + 20);
+
+		auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 18);
+
+		auto go = std::make_shared<dae::GameObject>("MsPacManLives");
+		go->SetLocalPosition(200, 450);
+		go->AddComponent<TextComponent>("# lives: 3", font);
+		go->AddComponent<HealthDisplayComponent>(msPacMan.GetGameObject());
+		scene.Add(go);
+
+		go = std::make_shared<dae::GameObject>("MsPacmanPoints");
+		go->SetLocalPosition(400, 450);
+		go->AddComponent<TextComponent>("Score: 0", font);
+		go->AddComponent<PointDisplayComponent>(msPacMan.GetGameObject());
+		scene.Add(go);
+	};
+}
+
+inline void Trim(std::string& str)
+{
+	str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](unsigned char ch) {
+		return !std::isspace(ch);
+		}));
+	str.erase(std::find_if(str.rbegin(), str.rend(), [](unsigned char ch) {
+		return !std::isspace(ch);
+		}).base(), str.end());
+}
+
+void MsPacmanCode::ParseCSVAndSpawn(const std::string& filepath, dae::Scene& scene)
+{
+	std::string string = dae::ResourceManager::GetResourcePath(filepath);
+	std::ifstream file(string);
+	if (!file)
+	{
+		std::cerr << "Failed to open CSV file: " << filepath << "\n";
+		return;
+	}
+
+	std::vector<std::string> lines;
+
+	std::string line;
+	bool firstLine = true;
+
+	while (std::getline(file, line))
+	{
+		// Strip BOM on first line only
+		if (firstLine)
+		{
+			firstLine = false;
+			if (line.size() >= 3 &&
+				static_cast<unsigned char>(line[0]) == 0xEF &&
+				static_cast<unsigned char>(line[1]) == 0xBB &&
+				static_cast<unsigned char>(line[2]) == 0xBF)
+			{
+				line = line.substr(3);
+			}
+		}
+		lines.push_back(line);
+	}
+
+	int row = 0;
+	for (const auto& lineStr : lines)
+	{
+		std::stringstream ss(lineStr);
+		std::string cell;
+		int col = 0;
+
+		while (std::getline(ss, cell, ';'))
+		{
+			Trim(cell);
+
+			if (!cell.empty())
+			{
+				try
+				{
+					int value = std::stoi(cell);
+					auto it = m_SpawnMap.find(value);
+					if (it != m_SpawnMap.end())
+					{
+						it->second(scene, col, row);
+					}
+				}
+				catch (const std::exception& e)
+				{
+					std::cerr << "Failed to parse int from cell \"" << cell << "\" at (row=" << row << ", col=" << col << "): " << e.what() << "\n";
+				}
+			}
+
+			++col;
+		}
+		++row;
+	}
 }

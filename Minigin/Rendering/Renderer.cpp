@@ -53,7 +53,6 @@ void dae::Renderer::Render() const
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
-	
 	SDL_RenderPresent(m_renderer);
 }
 
@@ -71,23 +70,80 @@ void dae::Renderer::Destroy()
 	}
 }
 
-void dae::Renderer::RenderTexture(const Texture2D& texture, const float x, const float y) const
+void dae::Renderer::RenderTexture(const Texture2D& texture, const float x, const float y,const float scaleX,const float scaleY) const
 {
+
+	int texW, texH;
+	SDL_QueryTexture(texture.GetSDLTexture(), nullptr, nullptr, &texW, &texH);
+	const float scaledW = texW * scaleX;
+	const float scaledH = texH * scaleY;
+
 	SDL_Rect dst{};
-	dst.x = static_cast<int>(x);
-	dst.y = static_cast<int>(y);
-	SDL_QueryTexture(texture.GetSDLTexture(), nullptr, nullptr, &dst.w, &dst.h);
+	dst.x = static_cast<int>(x );
+	dst.y = static_cast<int>(y );
+	dst.w = static_cast<int>(scaledW);
+	dst.h = static_cast<int>(scaledH);
+
 	SDL_RenderCopy(GetSDLRenderer(), texture.GetSDLTexture(), nullptr, &dst);
 }
 
-void dae::Renderer::RenderTexture(const Texture2D& texture, const float x, const float y, const float width, const float height) const
+void dae::Renderer::RenderTexture(const Texture2D& texture, const float x, const float y, 
+	const float width, const float height, const float scaleX, const float scaleY) const
 {
+
+	const float scaledW = width * scaleX;
+	const float scaledH = height * scaleY;
+
 	SDL_Rect dst{};
 	dst.x = static_cast<int>(x);
 	dst.y = static_cast<int>(y);
-	dst.w = static_cast<int>(width);
-	dst.h = static_cast<int>(height);
+	dst.w = static_cast<int>(scaledW);
+	dst.h = static_cast<int>(scaledH);
 	SDL_RenderCopy(GetSDLRenderer(), texture.GetSDLTexture(), nullptr, &dst);
+}
+
+void dae::Renderer::RenderTexture(const Texture2D& texture, const SDL_Rect& src,
+	glm::vec2 dstPos, const float scaleX, const float scaleY) const
+{
+
+	int texW, texH;
+	SDL_QueryTexture(texture.GetSDLTexture(), nullptr, nullptr, &texW, &texH);
+	const float scaledW = texW * scaleX;
+	const float scaledH = texH * scaleY;
+
+	SDL_Rect dst{};
+	dst.x = static_cast<int>(dstPos.x);
+	dst.y = static_cast<int>(dstPos.y);
+	dst.w = static_cast<int>(scaledW);
+	dst.h = static_cast<int>(scaledH);
+
+	SDL_RenderCopy(GetSDLRenderer(), texture.GetSDLTexture(), &src, &dst);
+}
+
+void dae::Renderer::RenderTexture(const Texture2D& texture, SDL_Rect src, SDL_Rect dst, const float scaleX, const float scaleY) const
+{
+
+	const float scaledW = dst.w * scaleX;
+	const float scaledH = dst.h * scaleY;
+
+	dst.x = static_cast<int>(dst.x);
+	dst.y = static_cast<int>(dst.y);
+	dst.w = static_cast<int>(scaledW);
+	dst.h = static_cast<int>(scaledH);
+
+	SDL_RenderCopy(GetSDLRenderer(), texture.GetSDLTexture(), &src, &dst);
+}
+
+void dae::Renderer::RenderDebugRect(const float width, const float height, const float posX, const float posY) const
+{
+	SDL_Rect rect{};
+	rect.x = posX;
+	rect.y = posY;
+	rect.w = width;
+	rect.h = height;
+
+	SDL_SetRenderDrawColor(GetSDLRenderer(), 0, 50, 255, 255);
+	SDL_RenderDrawRect(GetSDLRenderer(), &rect);
 }
 
 SDL_Renderer* dae::Renderer::GetSDLRenderer() const { return m_renderer; }

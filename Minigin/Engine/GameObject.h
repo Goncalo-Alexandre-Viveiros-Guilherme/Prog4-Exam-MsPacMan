@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include <vector>
 #include "Transform.h"
-#include "Component.h"
+#include "Engine/Components/Component.h"
 
 class Observer;
 
