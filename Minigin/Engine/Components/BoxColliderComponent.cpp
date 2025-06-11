@@ -5,13 +5,25 @@
 #include "ServiceLocator.h"
 
 BoxColliderComponent::BoxColliderComponent(dae::GameObject& parent, bool isStatic, bool blockOnCollision, float width, float height, bool debugRender):
-Component(parent),
-m_IsStatic{isStatic},
-m_BlockOnCollision(blockOnCollision),
-m_DebugRenderingActive(debugRender),
-m_Size(width,height)
+CollisionComponent(parent,isStatic,blockOnCollision,width,height),
+m_DebugRenderingActive(debugRender)
 {
-	ServiceLocator::GetCollisionService().RegisterCollisionObject(GetParent(), new BoxShape{width,height},blockOnCollision);
+	ServiceLocator::GetCollisionService().RegisterCollisionObject(this, new BoxShape{width,height});
+	m_Location = GetParent()->GetLocalPosition() + glm::vec3(m_Offset, 0);
+}
+
+BoxColliderComponent::BoxColliderComponent(dae::GameObject& parent, bool isStatic, bool blockOnCollision,
+	glm::vec2 size, glm::vec2 offset, bool debugRender):
+CollisionComponent(parent, isStatic, blockOnCollision, size,offset),
+m_DebugRenderingActive(debugRender)
+{
+	ServiceLocator::GetCollisionService().RegisterCollisionObject(this, new BoxShape{ size.x,size.y });
+	m_Location = GetParent()->GetLocalPosition() + glm::vec3(m_Offset, 0);
+}
+
+BoxColliderComponent::~BoxColliderComponent()
+{
+	ServiceLocator::GetCollisionService().UnRegisterCollisionObject(this);
 }
 
 bool BoxColliderComponent::IsCollidingAABB(const float ax, const float ay, const float bx, const float by, const float bw, const float bh) const
@@ -28,39 +40,38 @@ void BoxColliderComponent::FixedUpdate()
 
 	if (m_IsStatic) return;
 
-	auto& collisionObjs = ServiceLocator::GetCollisionService().GetCollisionObjects();
+	m_Location = GetParent()->GetLocalPosition() + glm::vec3(m_Offset, 0);
+
+	auto& collisionComponents = ServiceLocator::GetCollisionService().GetCollisionComponents();
 	auto& collisionShapes = ServiceLocator::GetCollisionService().GetCollisionShapes();
-	auto& collisionObjIsBlockingShape = ServiceLocator::GetCollisionService().GetIsBlockingCollisions();
 
 	bool hasCollidedWithAnyObj{ false };
 
-	for (int idx{}; idx < collisionObjs.size(); idx++)
+	for (int idx{}; idx < collisionComponents.size(); idx++)
 	{
-		const glm::vec2 currentObjPos = GetParent()->GetLocalPosition();
-		const glm::vec2 otherObjPos = collisionObjs[idx]->GetLocalPosition();
+		const glm::vec2 otherObjPos = collisionComponents[idx]->GetLocalColliderPosition();
 		const auto* collisionShape = collisionShapes[idx];
-		const bool isBlockingCollision = collisionObjIsBlockingShape[idx];
+		const bool isBlockingCollision = collisionComponents[idx]->GetIsBlocking();
 
-		if (GetParent() == collisionObjs[idx])
+		if (this == collisionComponents[idx])
 		{
 			continue;
 		}
 
 		const glm::vec2 size = collisionShape->GetDescriptor().box.size;
-		if (isBlockingCollision)
+		if (IsCollidingAABB(m_Location.x, m_Location.y,
+			otherObjPos.x, otherObjPos.y, size.x, size.y))
 		{
-			if (IsCollidingAABB(currentObjPos.x, currentObjPos.y,
-				otherObjPos.x, otherObjPos.y, size.x, size.y))
+			if (isBlockingCollision)
 			{
 				GetParent()->SetLocalPosition(m_LastSafePos);
 				hasCollidedWithAnyObj = true;
 			}
+			else
+			{
+				collisionComponents[idx]->OnEnterEvent();
+			}
 		}
-		else
-		{
-
-		}
-		
 	}
 
 	if (!hasCollidedWithAnyObj)
@@ -70,33 +81,12 @@ void BoxColliderComponent::FixedUpdate()
 	
 }
 
-void BoxColliderComponent::AddOnEnterEvent(const Event& event) const
-{
-	EventDispatcher::GetInstance().Dispatch(event, GetParent());
-}
-
-void BoxColliderComponent::AddWhileInEvent(const Event& event) const
-{
-	EventDispatcher::GetInstance().Dispatch(event, GetParent());
-}
-
-void BoxColliderComponent::AddWhileOutEvent(const Event& event) const
-{
-	EventDispatcher::GetInstance().Dispatch(event, GetParent());
-}
-
-void BoxColliderComponent::AddOnExitEvent(const Event& event) const
-{
-	EventDispatcher::GetInstance().Dispatch(event, GetParent());
-}
-
 void BoxColliderComponent::Render()
 {
 	if (m_DebugRenderingActive)
 	{
 		Component::Render();
-		auto pos = GetParent()->GetLocalPosition();
-		dae::Renderer::GetInstance().RenderDebugRect(m_Size.x,m_Size.y, pos.x, pos.y);
+		dae::Renderer::GetInstance().RenderDebugRect(m_Size.x,m_Size.y, m_Location.x, m_Location.y);
 	}
 
 }

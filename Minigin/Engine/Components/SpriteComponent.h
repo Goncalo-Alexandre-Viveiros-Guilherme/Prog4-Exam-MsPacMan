@@ -27,7 +27,7 @@ private:
 	SDL_Rect m_SrcRect;
 	int m_DstWidth = 0;
 	int m_DstHeight = 0;
-	int m_SpriteScaleX = 1;
-	int m_SpriteScaleY = 1;
+	float m_SpriteScaleX = 1;
+	float m_SpriteScaleY = 1;
 };
 #endif // SPRITECOMPONENT_H

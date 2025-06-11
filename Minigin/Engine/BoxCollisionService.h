@@ -6,15 +6,17 @@ class BoxCollisionService : public CollisionService
 {
 public:
 	BoxCollisionService();
-	virtual ~BoxCollisionService();
-	virtual void RegisterCollisionObject(dae::GameObject* gameObj,Shape* boxShape, bool isBlocking) override;
-	virtual std::vector<dae::GameObject*>& GetCollisionObjects() override;
+	~BoxCollisionService() override;
+
+	virtual void RegisterCollisionObject(CollisionComponent* collisionComponent, Shape* shape) override;
+	virtual void UnRegisterCollisionObject(CollisionComponent* collisionComponent) override;
+	virtual std::vector<CollisionComponent*>& GetCollisionComponents() override;
 	virtual std::vector<Shape*>& GetCollisionShapes() override;
 	virtual std::vector<bool>& GetIsBlockingCollisions() override;
 
 private:
-	std::vector<dae::GameObject*> m_CollisionObjects;
-	std::vector<Shape*> m_CollisionShape;
+	std::vector<CollisionComponent*> m_CollisionComponents;
+	std::vector<Shape*> m_CollisionShapes;
 	std::vector<bool> m_IsBlockingCollisions;
 };
 #endif // BOXCOLLISIONSERVICE_H

@@ -4,6 +4,12 @@
 
 PointsComponent::PointsComponent(dae::GameObject& parent) : Component(parent), m_CurrentPoints(0)
 {
+	EventDispatcher::GetInstance().AddListener<AddPointsEvent>
+		(nullptr, [this](const AddPointsEvent& event)
+			{
+				AddToPoints(event.m_AmountToAdd);
+			}
+		);
 }
 
 void PointsComponent::AddToPoints(const float value)

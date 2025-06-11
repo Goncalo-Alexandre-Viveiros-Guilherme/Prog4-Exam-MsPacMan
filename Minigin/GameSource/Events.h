@@ -23,6 +23,26 @@ public:
     float m_Points;
 };
 
+class AddPointsEvent : public Event
+{
+public:
+	AddPointsEvent(float amountToAdd): m_AmountToAdd(amountToAdd)
+	{
+	}
+
+	float m_AmountToAdd{};
+};
+
+class DestroyGameObjectEvent : public Event
+{
+public:
+	DestroyGameObjectEvent(dae::GameObject* gameObjectToDestroy) : m_GameObjDestroy(gameObjectToDestroy)
+	{
+	}
+
+	dae::GameObject* m_GameObjDestroy{};
+};
+
 
 namespace FSM
 {

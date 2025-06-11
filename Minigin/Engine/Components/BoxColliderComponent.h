@@ -1,33 +1,30 @@
-#pragma once
-#include "Component.h"
-#include "vec2.hpp"
-#include "vec3.hpp"
+#ifndef BOXCOLLIDERCOMPONENT_H
+#define BOXCOLLIDERCOMPONENT_H
+
+#include "CollisionComponent.h"
 
 class Event;
 
-class BoxColliderComponent : public Component
+class BoxColliderComponent : public CollisionComponent
 {
 public:
 	BoxColliderComponent(dae::GameObject& parent,bool isStatic,bool blockOnCollision,float width, float height, bool debugRender = false);
 
-	void FixedUpdate() override;
+	BoxColliderComponent(dae::GameObject& parent,bool isStatic,bool blockOnCollision,glm::vec2 size,glm::vec2 offset, bool debugRender = false);
 
-	void AddOnEnterEvent(const Event& event) const;
-	void AddWhileInEvent(const Event& event) const;
-	void AddWhileOutEvent(const Event& event) const;
-	void AddOnExitEvent(const Event& event) const;
+	~BoxColliderComponent();
+
+	void FixedUpdate() override;
 
 	void Render() override;
 
 	bool GetIsBlocking() const { return m_BlockOnCollision; }
 
+	glm::vec2 GetLocalColliderPosition() const {return m_Location;}
+
 private:
 	bool IsCollidingAABB(float ax, float ay,float bx, float by, float bw, float bh) const;
 
-
-	bool m_IsStatic			= false;
-	bool m_BlockOnCollision = true;
 	bool m_DebugRenderingActive = false;
-	glm::vec2 m_Size		{};
-	glm::vec3 m_LastSafePos {};
 };
+#endif // BOXCOLLIDERCOMPONENT_H

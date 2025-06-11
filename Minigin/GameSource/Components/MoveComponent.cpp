@@ -16,8 +16,8 @@ void MoveComponent::Update()
 
 	if (m_SpeedX == 0 || m_SpeedY == 0)
 	{
-		FSM::NewState event(FSM::States::MovingState);
-		EventDispatcher::GetInstance().Dispatch(event, GetParent());
+		//FSM::NewState event(FSM::States::MovingState);
+		//EventDispatcher::GetInstance().Dispatch(event, GetParent());
 	}
 }
 

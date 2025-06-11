@@ -59,7 +59,7 @@ add_library(miniginLib STATIC
    Minigin/Engine/ServiceLocator.cpp 
    Minigin/Engine/CollisionService.h 
    Minigin/Engine/BoxCollisionService.cpp
-   Minigin/Engine/Shapes.h)
+   Minigin/Engine/Shapes.h "Minigin/Engine/Components/CollisionComponent.h")
  target_link_libraries(${TARGET_NAME} PUBLIC miniginLib)
 
 # enable c++20 features

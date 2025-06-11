@@ -47,7 +47,7 @@ void SpriteComponent::Render()
 	}
 	else
 	{
-		dae::Renderer::GetInstance().RenderTexture(*m_Texture, m_SrcRect, GetParent()->GetWorldPosition());
+		dae::Renderer::GetInstance().RenderTexture(*m_Texture, m_SrcRect, GetParent()->GetWorldPosition(), m_SpriteScaleX, m_SpriteScaleY);
 	}
 
 }
