@@ -123,6 +123,7 @@ dae::Minigin::~Minigin()
 void dae::Minigin::Run(const std::function<void()>& load)
 {
 	load();
+	Time::GetInstance().Update();
 #ifndef __EMSCRIPTEN__
 	while (!m_quit)
 	{

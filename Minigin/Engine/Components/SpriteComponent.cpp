@@ -10,18 +10,20 @@
 #include "Texture2D.h"
 
 
-SpriteComponent::SpriteComponent(dae::GameObject& parent, const std::string& filename, SDL_Rect srcRect):
-Component(parent),
- m_SrcRect(srcRect)
+SpriteComponent::SpriteComponent(dae::GameObject& parent, const std::string& filename, SDL_Rect srcRect,float rotation):
+	Component(parent),
+	m_SrcRect(srcRect),
+	m_SpriteRot(rotation)
 {
 	m_Texture = dae::ResourceManager::GetInstance().LoadTexture(filename);
 }
 
-SpriteComponent::SpriteComponent(dae::GameObject& parent, const std::string& filename, SDL_Rect srcRect, int dstWidth,int dstHeight): 
+SpriteComponent::SpriteComponent(dae::GameObject& parent, const std::string& filename, SDL_Rect srcRect, int dstWidth,int dstHeight, float rotation): 
 	Component(parent),
 	m_SrcRect(srcRect),
 	m_DstWidth(dstWidth),
-	m_DstHeight(dstHeight)
+	m_DstHeight(dstHeight),
+	m_SpriteRot(rotation)
 {
 	m_Texture = dae::ResourceManager::GetInstance().LoadTexture(filename);
 }
@@ -43,11 +45,11 @@ void SpriteComponent::Render()
 		dst.y = static_cast<int>(GetParent()->GetWorldPosition().y);
 		dst.w = m_DstWidth;
 		dst.h = m_DstHeight;
-		dae::Renderer::GetInstance().RenderTexture(*m_Texture, m_SrcRect, dst,m_SpriteScaleX,m_SpriteScaleY);
+		dae::Renderer::GetInstance().RenderTexture(*m_Texture, m_SrcRect, dst,m_SpriteScaleX,m_SpriteScaleY, m_SpriteRot);
 	}
 	else
 	{
-		dae::Renderer::GetInstance().RenderTexture(*m_Texture, m_SrcRect, GetParent()->GetWorldPosition(), m_SpriteScaleX, m_SpriteScaleY);
+		dae::Renderer::GetInstance().RenderTexture(*m_Texture, m_SrcRect, GetParent()->GetWorldPosition(), m_SpriteScaleX, m_SpriteScaleY, m_SpriteRot);
 	}
 
 }

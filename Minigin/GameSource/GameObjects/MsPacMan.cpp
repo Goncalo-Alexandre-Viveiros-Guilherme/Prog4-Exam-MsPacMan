@@ -17,12 +17,12 @@ MsPacMan::MsPacMan(dae::Scene& scene) : m_MainGameObject(nullptr)
 	m_MainGameObject = std::make_shared<dae::GameObject>("MsPacMan");
 	SDL_Rect srcRect { 0,0,16,16};
 	m_MainGameObject->AddComponent<SpriteComponent>("MsPacMan.png", srcRect);
-	m_MainGameObject->GetComponent<SpriteComponent>()->SetScale(1.5f,1.5f);
+	m_MainGameObject->GetComponent<SpriteComponent>()->SetScale(2.f,2.f);
 
 	auto singleGridSize = glm::vec2{ 8 * 3, 8 * 3 };
 	m_MainGameObject->AddComponent<MoveComponent>(singleGridSize);
 	m_MainGameObject->AddComponent<HealthComponent>(3.f);
-	m_MainGameObject->AddComponent<BoxColliderComponent>(false, false, 16.f * 1.5f, 16.f * 1.5f/*, true*/);
+	m_MainGameObject->AddComponent<BoxColliderComponent>(false, false, 8.f * 3.0f, 8.f * 3.f);
 	m_MainGameObject->AddComponent<PointsComponent>();
 	scene.Add(m_MainGameObject);
 

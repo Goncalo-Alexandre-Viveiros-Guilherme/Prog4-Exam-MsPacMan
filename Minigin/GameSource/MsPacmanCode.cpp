@@ -78,14 +78,21 @@ void MsPacmanCode::LoadGameCode()
 	//soundService.PlayMusic("skibidi", 100, 1);
 }
 
-void MsPacmanCode::AddWall(dae::Scene& scene, int col, int row ,int srcX, int srcY)
+void MsPacmanCode::AddWall(dae::Scene& scene, int col, int row ,int srcX, int srcY, int wallType, float rotation)
 {
 	auto wall = std::make_shared<dae::GameObject>("Wall");
 	SDL_Rect srcRect{ srcX,srcY,8,8 };
+	int dstH{ 8 };
+	int dstW{ 8 };
 	wall->SetLocalPosition((col * 8.f) * m_MapScalingFactor, (row * 8.f) * m_MapScalingFactor);
-	wall->AddComponent<SpriteComponent>("WallsTransparent.png", srcRect, 8,8);
+
+	wallType;
+	glm::vec2 spriteSize{ 8,8 };
+	wall->AddComponent<BoxColliderComponent>(true, true, 8.f * m_MapScalingFactor, 8.f * m_MapScalingFactor);
+
+	wall->AddComponent<SpriteComponent>("WallsTransparent.png", srcRect, dstW, dstH, rotation);
 	wall->GetComponent<SpriteComponent>()->SetScale(3, 3);
-	wall->AddComponent<BoxColliderComponent>(true,true,8.f,8.f/*,true*/);
+
 	scene.Add(wall);
 }
 
@@ -94,13 +101,14 @@ void MsPacmanCode::InitSpawnMap()
 	for (int i = 0; i <= 8; ++i)
 	{
 		const int spriteOffsetX = (i * 8) + (2 * i);
-		m_SpawnMap[std::to_string(i)] = [spriteOffsetX, this](dae::Scene& scene, int x, int y) {
-			AddWall(scene, x, y, spriteOffsetX, 0); };
+		m_SpawnMap[std::to_string(i)] = [spriteOffsetX, i ,this](dae::Scene& scene, int x, int y, float rotation) {
+			AddWall(scene, x, y, spriteOffsetX, 0, i, rotation); };
 	}
 
-	m_SpawnMap["MPM"] = [this](dae::Scene& scene, int x, int y) {
+	m_SpawnMap["MPM"] = [this](dae::Scene& scene, int x, int y, float rotation) {
+		rotation;
 		MsPacMan msPacMan(scene);
-		msPacMan.GetGameObject()->SetLocalPosition((x * 8.f) * m_MapScalingFactor, ((y * 8.f) * m_MapScalingFactor));
+		msPacMan.GetGameObject()->SetLocalPosition((x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor);
 
 		auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 18);
 
@@ -117,11 +125,11 @@ void MsPacmanCode::InitSpawnMap()
 		scene.Add(go);
 	};
 
-	m_SpawnMap["PD"] = [this](dae::Scene& scene, int x, int y) {
+	m_SpawnMap["PD"] = [this](dae::Scene& scene, int x, int y, float rotation) {
 			auto pacDot = std::make_shared<dae::GameObject>("Pac-Dot");
 			SDL_Rect srcRect{ 0,0,8,8 };
-			pacDot->SetLocalPosition((x * 8.f) * m_MapScalingFactor, ((y * 8.f) * m_MapScalingFactor) - 10);
-			pacDot->AddComponent<SpriteComponent>("Pac-Dot.png", srcRect);
+			pacDot->SetLocalPosition((x * 8.f) * m_MapScalingFactor, ((y * 8.f) * m_MapScalingFactor));
+			pacDot->AddComponent<SpriteComponent>("Pac-Dot.png", srcRect, rotation);
 			pacDot->GetComponent<SpriteComponent>()->SetScale(m_MapScalingFactor, m_MapScalingFactor);
 			pacDot->AddComponent<BoxColliderComponent>(true, false, glm::vec2{2 * m_MapScalingFactor,2 * m_MapScalingFactor }, 
 				glm::vec2{3* m_MapScalingFactor,3 * m_MapScalingFactor }/*, true*/);
@@ -139,11 +147,11 @@ void MsPacmanCode::InitSpawnMap()
 			scene.Add(pacDot);
 		};
 
-	m_SpawnMap["PP"] = [this](dae::Scene& scene, int x, int y) {
+	m_SpawnMap["PP"] = [this](dae::Scene& scene, int x, int y, float rotation) {
 		auto powerPellet = std::make_shared<dae::GameObject>("Power-Pellet");
 		SDL_Rect srcRect{ 0,0,8,8 };
-		powerPellet->SetLocalPosition((x * 8.f) * m_MapScalingFactor, ((y * 8.f) * m_MapScalingFactor) - 10);
-		powerPellet->AddComponent<SpriteComponent>("Power-Pellet.png", srcRect);
+		powerPellet->SetLocalPosition((x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor);
+		powerPellet->AddComponent<SpriteComponent>("Power-Pellet.png", srcRect, rotation);
 		powerPellet->GetComponent<SpriteComponent>()->SetScale(m_MapScalingFactor, m_MapScalingFactor);
 		powerPellet->AddComponent<BoxColliderComponent>(true, false, 8 * m_MapScalingFactor, 8 * m_MapScalingFactor/*, true*/);
 
@@ -218,16 +226,30 @@ void MsPacmanCode::ParseCSVAndSpawn(const std::string& filepath, dae::Scene& sce
 			{
 				try
 				{
-					auto value = cell;
-					auto it = m_SpawnMap.find(value);
+					std::istringstream cellStream(cell);
+					std::string type;
+					float rotation = 0.0f;
+
+					cellStream >> type;
+
+					if (cellStream >> rotation)
+					{
+						// Rotation value was successfully read
+					}
+
+					auto it = m_SpawnMap.find(type);
 					if (it != m_SpawnMap.end())
 					{
-						it->second(scene, col, row);
+						it->second(scene, col, row, rotation);
+					}
+					else
+					{
+						std::cerr << "Unknown cell type: " << type << " at (row=" << row << ", col=" << col << ")\n";
 					}
 				}
 				catch (const std::exception& e)
 				{
-					std::cerr << "Failed to parse int from cell \"" << cell << "\" at (row=" << row << ", col=" << col << "): " << e.what() << "\n";
+					std::cerr << "Failed to parse cell \"" << cell << "\" at (row=" << row << ", col=" << col << "): " << e.what() << "\n";
 				}
 			}
 

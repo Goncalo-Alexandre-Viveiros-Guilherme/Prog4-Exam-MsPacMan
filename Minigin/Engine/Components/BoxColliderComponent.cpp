@@ -31,9 +31,7 @@ bool BoxColliderComponent::IsCollidingInDirection(const glm::vec2 direction, flo
 	auto owner = GetParent();
 	auto pos = owner->GetWorldPosition();
 
-	// Only check a small distance ahead (adjust this value as needed)
-	float actualCheckDistance = std::min(checkDistance, 2.0f); // Check just 2 units ahead
-	glm::vec2 newPos = glm::vec2(pos.x, pos.y) + direction * actualCheckDistance;
+	glm::vec2 newPos = glm::vec2(pos.x, pos.y) + m_Offset + direction * checkDistance;
 
 	SDL_FRect futureBounds{ newPos.x, newPos.y, m_Size.x, m_Size.y };
 

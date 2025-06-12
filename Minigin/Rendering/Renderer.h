@@ -20,10 +20,10 @@ namespace dae
 		void Render() const;
 		void Destroy();
 
-		void RenderTexture(const Texture2D& texture, float x, float y, const float scaleX = 1, const float scaleY = 1) const;
-		void RenderTexture(const Texture2D& texture, float x, float y, float width, float height, const float scaleX = 1, const float scaleY = 1) const;
-		void RenderTexture(const Texture2D& texture, const SDL_Rect& src, glm::vec2 dstPos, const float scaleX = 1, const float scaleY = 1) const;
-		void RenderTexture(const Texture2D& texture, SDL_Rect src, SDL_Rect dst, const float scaleX = 1, const float scaleY = 1) const;
+		void RenderTexture(const Texture2D& texture, float x, float y, const float scaleX = 1, const float scaleY = 1, float rotation = 0) const;
+		void RenderTexture(const Texture2D& texture, float x, float y, float width, float height, const float scaleX = 1, const float scaleY = 1, float rotation = 0) const;
+		void RenderTexture(const Texture2D& texture, const SDL_Rect& src, glm::vec2 dstPos, const float scaleX = 1, const float scaleY = 1, float rotation = 0) const;
+		void RenderTexture(const Texture2D& texture, SDL_Rect src, SDL_Rect dst, const float scaleX = 1, const float scaleY = 1, float rotation = 0) const;
 
 		void RenderDebugRect(float width, float height, float posX, float posY) const;
 
