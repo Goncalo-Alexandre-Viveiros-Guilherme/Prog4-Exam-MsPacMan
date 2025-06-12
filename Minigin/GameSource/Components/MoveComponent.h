@@ -3,6 +3,8 @@
 #include "vec2.hpp"
 #include "vec3.hpp"
 
+class CollisionComponent;
+
 enum DesiredDirection
 {
 	Up,
@@ -17,11 +19,9 @@ class MoveComponent : public Component
 public:
 	MoveComponent(dae::GameObject& parent, glm::vec2 gridSize);
 	void Update() override;
-	bool WouldCollide(const glm::vec3& position) const;
-	bool IsNearGridIntersection(const glm::vec3& pos) const;
 	bool CanMove(DesiredDirection direction);
-	bool IsCollidingAABB(float ax, float ay, float bx, float by, float bw, float bh) const;
 	glm::vec2 GetDirectionOffset(DesiredDirection dir) const;
+	bool IsNearGridIntersection(const glm::vec3& pos) const;
 	void SetDesiredDirection(DesiredDirection desiredDirection);
 	void SetSpeed(float speed);
 
@@ -30,4 +30,5 @@ private:
 	glm::vec2 m_GridSize;
 	DesiredDirection m_DesiredDirection;
 	DesiredDirection m_CurrentDirection;
+	CollisionComponent* m_CollisionComponent;
 };

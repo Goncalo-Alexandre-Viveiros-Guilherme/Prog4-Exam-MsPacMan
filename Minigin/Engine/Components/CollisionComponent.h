@@ -28,6 +28,8 @@ public:
 
 	void FixedUpdate() override{}
 
+	virtual bool WouldCollide(glm::vec3 position) = 0;
+
 	virtual void AddOnEnterEvent(std::unique_ptr<Event> eventToAdd)
 	{
 		m_OnEnterEvents.emplace_back(std::move(eventToAdd));

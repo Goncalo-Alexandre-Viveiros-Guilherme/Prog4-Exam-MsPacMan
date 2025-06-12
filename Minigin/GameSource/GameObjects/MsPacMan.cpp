@@ -20,9 +20,9 @@ MsPacMan::MsPacMan(dae::Scene& scene) : m_MainGameObject(nullptr)
 	m_MainGameObject->GetComponent<SpriteComponent>()->SetScale(2.f,2.f);
 
 	auto singleGridSize = glm::vec2{ 8 * 3, 8 * 3 };
+	m_MainGameObject->AddComponent<BoxColliderComponent>(false, false, 8.f * 3.0f, 8.f * 3.f);
 	m_MainGameObject->AddComponent<MoveComponent>(singleGridSize);
 	m_MainGameObject->AddComponent<HealthComponent>(3.f);
-	m_MainGameObject->AddComponent<BoxColliderComponent>(false, false, 8.f * 3.0f, 8.f * 3.f);
 	m_MainGameObject->AddComponent<PointsComponent>();
 	scene.Add(m_MainGameObject);
 

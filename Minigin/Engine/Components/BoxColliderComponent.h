@@ -14,6 +14,8 @@ public:
 
 	~BoxColliderComponent();
 
+	bool WouldCollide(const glm::vec3 position) override;
+
 	void FixedUpdate() override;
 
 	void Render() override;
@@ -21,7 +23,6 @@ public:
 	bool GetIsBlocking() const { return m_BlockOnCollision; }
 
 	glm::vec2 GetLocalColliderPosition() const {return m_Location;}
-	bool IsCollidingInDirection(const glm::vec2 direction, float checkDistance) const;
 
 private:
 	bool IsCollidingAABB(float ax, float ay,float bx, float by, float bw, float bh) const;

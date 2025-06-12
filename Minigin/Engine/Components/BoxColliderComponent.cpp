@@ -1,4 +1,5 @@
 #include "BoxColliderComponent.h"
+#include "BoxColliderComponent.h"
 
 #include "EventDispatcher.h"
 #include "Renderer.h"
@@ -26,36 +27,31 @@ BoxColliderComponent::~BoxColliderComponent()
 	ServiceLocator::GetCollisionService().UnRegisterCollisionObject(this);
 }
 
-bool BoxColliderComponent::IsCollidingInDirection(const glm::vec2 direction, float checkDistance) const
+bool BoxColliderComponent::WouldCollide(const glm::vec3 position)
 {
-	auto owner = GetParent();
-	auto pos = owner->GetWorldPosition();
-
-	glm::vec2 newPos = glm::vec2(pos.x, pos.y) + m_Offset + direction * checkDistance;
-
-	SDL_FRect futureBounds{ newPos.x, newPos.y, m_Size.x, m_Size.y };
+	glm::vec3 myColliderPos = position + glm::vec3(m_Offset, 0);
+	const glm::vec2 mySize = GetSize();
 
 	auto& collisionComponents = ServiceLocator::GetCollisionService().GetCollisionComponents();
-	auto& collisionShapes = ServiceLocator::GetCollisionService().GetCollisionShapes();
 
-	for (int idx{}; idx < collisionComponents.size(); idx++)
+	for (auto* other : collisionComponents)
 	{
-		if (this == collisionComponents[idx]) continue;
+		if (other == this || !other->GetIsBlocking()) continue;
 
-		const glm::vec2 otherObjPos = collisionComponents[idx]->GetLocalColliderPosition();
-		const auto* collisionShape = collisionShapes[idx];
-		const bool isBlockingCollision = collisionComponents[idx]->GetIsBlocking();
+		const glm::vec2 otherPos = other->GetLocalColliderPosition();
+		const glm::vec2 otherSize = other->GetSize();
 
-		const glm::vec2 size = collisionShape->GetDescriptor().box.size;
+		const float tolerance = 0.1f;
+		float shrinkX = otherSize.x * tolerance;
+		float shrinkY = otherSize.y * tolerance;
 
-		if (IsCollidingAABB(futureBounds.x, futureBounds.y,
-			otherObjPos.x, otherObjPos.y, size.x, size.y))
+		if (IsCollidingAABB(myColliderPos.x, myColliderPos.y,
+			otherPos.x + shrinkX,
+			otherPos.y + shrinkY,
+			otherSize.x - 2 * shrinkX,
+			otherSize.y - 2 * shrinkY))
 		{
-			if (isBlockingCollision)
-			{
-				return true;
-			}
-			collisionComponents[idx]->OnEnterEvent();
+			return true;
 		}
 	}
 	return false;
