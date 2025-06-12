@@ -84,6 +84,8 @@ public:
 
 	virtual bool GetIsBlocking() const { return m_BlockOnCollision; }
 
+	virtual glm::vec2 GetSize() const { return m_Size; }
+
 	virtual glm::vec2 GetLocalColliderPosition() const { return m_Location; }
 
 protected:

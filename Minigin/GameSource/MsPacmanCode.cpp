@@ -100,7 +100,7 @@ void MsPacmanCode::InitSpawnMap()
 
 	m_SpawnMap["MPM"] = [this](dae::Scene& scene, int x, int y) {
 		MsPacMan msPacMan(scene);
-		msPacMan.GetGameObject()->SetLocalPosition((x * 8.f) * m_MapScalingFactor, ((y * 8.f) * m_MapScalingFactor) - 10);
+		msPacMan.GetGameObject()->SetLocalPosition((x * 8.f) * m_MapScalingFactor, ((y * 8.f) * m_MapScalingFactor));
 
 		auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 18);
 

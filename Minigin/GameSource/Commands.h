@@ -1,6 +1,7 @@
 #pragma once
 
 
+enum DesiredDirection : int;
 
 namespace dae
 { 
@@ -20,13 +21,13 @@ public:
 class MoveCommand : public Command
 {
 public:
-	MoveCommand(float speedX, float speedY, MoveComponent* moveComponent);
+	MoveCommand(float speed, DesiredDirection desiredDirection ,MoveComponent* moveComponent);
 	void Execute() override;
 
 private:
-	float m_SpeedY;
-	float m_SpeedX;
+	float m_Speed;
 	MoveComponent* m_MoveComponent;
+	DesiredDirection m_DesiredDirection;
 };
 
 class AddHealthCommand : public Command

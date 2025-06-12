@@ -11,43 +11,43 @@ namespace dae
         std::unique_ptr<Command> command;
         std::vector<SDL_Scancode> SDLkeys;
         std::vector<int> GamepadButtons;
-        KeyState actionKeyState{ None };
-        KeyState currentKeyState{ None };
+        KeyState actionKeyState{ KeyNone };
+        KeyState currentKeyState{ KeyNone };
 
     public:
         InputMappingImpl(std::unique_ptr<Command> cmd,
             std::initializer_list<SDL_Scancode> keys,
             std::initializer_list<int> buttons = {},
-            KeyState keystate = KeyState::Down) :
+            KeyState keystate = KeyState::KeyDown) :
             command(std::move(cmd)), SDLkeys(keys), GamepadButtons(buttons), actionKeyState(keystate) {
         };
 
         void DoSetKeyState(bool isDown)
         {
-            if (actionKeyState == None)
+            if (actionKeyState == KeyNone)
             {
-                currentKeyState = None;
+                currentKeyState = KeyNone;
                 return;
             }
 
-            if (currentKeyState == Released) currentKeyState = Up;
-            if (currentKeyState == Pressed) currentKeyState = Down;
+            if (currentKeyState == KeyReleased) currentKeyState = KeyUp;
+            if (currentKeyState == KeyPressed) currentKeyState = KeyDown;
 
-            if (currentKeyState == None)
+            if (currentKeyState == KeyNone)
             {
-                currentKeyState = isDown ? Down : Up;
+                currentKeyState = isDown ? KeyDown : KeyUp;
             }
 
-            if (currentKeyState == Down)
+            if (currentKeyState == KeyDown)
             {
                 if (!isDown)
                 {
-                    currentKeyState = Released;
+                    currentKeyState = KeyReleased;
                 }
             }
-            else if (currentKeyState == Up)
+            else if (currentKeyState == KeyUp)
             {
-                if (isDown) currentKeyState = Pressed;
+                if (isDown) currentKeyState = KeyPressed;
             }
         }
 

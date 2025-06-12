@@ -26,6 +26,43 @@ BoxColliderComponent::~BoxColliderComponent()
 	ServiceLocator::GetCollisionService().UnRegisterCollisionObject(this);
 }
 
+bool BoxColliderComponent::IsCollidingInDirection(const glm::vec2 direction, float checkDistance) const
+{
+	auto owner = GetParent();
+	auto pos = owner->GetWorldPosition();
+
+	// Only check a small distance ahead (adjust this value as needed)
+	float actualCheckDistance = std::min(checkDistance, 2.0f); // Check just 2 units ahead
+	glm::vec2 newPos = glm::vec2(pos.x, pos.y) + direction * actualCheckDistance;
+
+	SDL_FRect futureBounds{ newPos.x, newPos.y, m_Size.x, m_Size.y };
+
+	auto& collisionComponents = ServiceLocator::GetCollisionService().GetCollisionComponents();
+	auto& collisionShapes = ServiceLocator::GetCollisionService().GetCollisionShapes();
+
+	for (int idx{}; idx < collisionComponents.size(); idx++)
+	{
+		if (this == collisionComponents[idx]) continue;
+
+		const glm::vec2 otherObjPos = collisionComponents[idx]->GetLocalColliderPosition();
+		const auto* collisionShape = collisionShapes[idx];
+		const bool isBlockingCollision = collisionComponents[idx]->GetIsBlocking();
+
+		const glm::vec2 size = collisionShape->GetDescriptor().box.size;
+
+		if (IsCollidingAABB(futureBounds.x, futureBounds.y,
+			otherObjPos.x, otherObjPos.y, size.x, size.y))
+		{
+			if (isBlockingCollision)
+			{
+				return true;
+			}
+			collisionComponents[idx]->OnEnterEvent();
+		}
+	}
+	return false;
+}
+
 bool BoxColliderComponent::IsCollidingAABB(const float ax, const float ay, const float bx, const float by, const float bw, const float bh) const
 {
 	return (ax < bx + bw) &&

@@ -18,20 +18,27 @@ MsPacMan::MsPacMan(dae::Scene& scene) : m_MainGameObject(nullptr)
 	SDL_Rect srcRect { 0,0,16,16};
 	m_MainGameObject->AddComponent<SpriteComponent>("MsPacMan.png", srcRect);
 	m_MainGameObject->GetComponent<SpriteComponent>()->SetScale(1.5f,1.5f);
-	m_MainGameObject->AddComponent<MoveComponent>();
+
+	auto singleGridSize = glm::vec2{ 8 * 3, 8 * 3 };
+	m_MainGameObject->AddComponent<MoveComponent>(singleGridSize);
 	m_MainGameObject->AddComponent<HealthComponent>(3.f);
 	m_MainGameObject->AddComponent<BoxColliderComponent>(false, false, 16.f * 1.5f, 16.f * 1.5f/*, true*/);
 	m_MainGameObject->AddComponent<PointsComponent>();
 	scene.Add(m_MainGameObject);
 
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({ SDL_SCANCODE_W }, {}, Down, 0.f, -250.0f,	m_MainGameObject->GetComponent<MoveComponent>());
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({ SDL_SCANCODE_S }, {}, Down, 0.f, 250.0f,	m_MainGameObject->GetComponent<MoveComponent>());
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({ SDL_SCANCODE_A }, {}, Down, -250.0f, 0.f,	m_MainGameObject->GetComponent<MoveComponent>());
-	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({ SDL_SCANCODE_D }, {}, Down, 250.0f, 0.f,	m_MainGameObject->GetComponent<MoveComponent>());
+	auto moveComponent = m_MainGameObject->GetComponent<MoveComponent>();
 
-	dae::InputManager::GetInstance().AddInputMapping<AddHealthCommand>({ SDL_SCANCODE_C }, {}, Pressed, -1.f,	m_MainGameObject->GetComponent<HealthComponent>());
-	dae::InputManager::GetInstance().AddInputMapping<AddPointsCommand>({ SDL_SCANCODE_Z }, {}, Pressed, 10.f,	m_MainGameObject->GetComponent<PointsComponent>());
-	dae::InputManager::GetInstance().AddInputMapping<AddPointsCommand>({ SDL_SCANCODE_X }, {}, Pressed, 100.f,	m_MainGameObject->GetComponent<PointsComponent>());
+
+	auto& inputManager = dae::InputManager::GetInstance();
+
+	inputManager.AddInputMapping<MoveCommand>({ SDL_SCANCODE_W }, {}, KeyDown, 160.f, DesiredDirection::Up, moveComponent);
+	inputManager.AddInputMapping<MoveCommand>({ SDL_SCANCODE_S }, {}, KeyDown, 160.f, DesiredDirection::Down, moveComponent);
+	inputManager.AddInputMapping<MoveCommand>({ SDL_SCANCODE_A }, {}, KeyDown, 160.f, DesiredDirection::Left, moveComponent);
+	inputManager.AddInputMapping<MoveCommand>({ SDL_SCANCODE_D }, {}, KeyDown, 160.f, DesiredDirection::Right, moveComponent);
+
+	inputManager.AddInputMapping<AddHealthCommand>({ SDL_SCANCODE_C }, {}, KeyPressed, -1.f,	m_MainGameObject->GetComponent<HealthComponent>());
+	inputManager.AddInputMapping<AddPointsCommand>({ SDL_SCANCODE_Z }, {}, KeyPressed, 10.f,	m_MainGameObject->GetComponent<PointsComponent>());
+	inputManager.AddInputMapping<AddPointsCommand>({ SDL_SCANCODE_X }, {}, KeyPressed, 100.f,	m_MainGameObject->GetComponent<PointsComponent>());
 }
 
 

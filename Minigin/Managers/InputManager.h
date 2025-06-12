@@ -9,11 +9,11 @@
 
 enum KeyState
 {
-	Pressed,
-	Up,
-	Down,
-	Released,
-	None
+	KeyPressed,
+	KeyUp,
+	KeyDown,
+	KeyReleased,
+	KeyNone
 };
 
 enum GamepadButtons
@@ -46,7 +46,7 @@ namespace dae
 		InputMapping(std::unique_ptr<Command> cmd,
 			std::initializer_list<SDL_Scancode> keys,
 			std::initializer_list<int> buttons = {},
-			KeyState keystate = KeyState::Down);
+			KeyState keystate = KeyState::KeyDown);
 
 		~InputMapping(); 
 
@@ -67,7 +67,7 @@ namespace dae
 		template <typename CommandType, typename... Args>
 		void AddInputMapping(std::initializer_list<SDL_Scancode> keys,
 			std::initializer_list<int> buttons = {},
-			KeyState actionKeyState = KeyState::Down,
+			KeyState actionKeyState = KeyState::KeyDown,
 			Args&&... args)
 		{
 			m_InputMappings.emplace_back(
