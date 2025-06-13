@@ -17,13 +17,15 @@ enum DesiredDirection
 class MoveComponent : public Component
 {
 public:
-	MoveComponent(dae::GameObject& parent, glm::vec2 gridSize);
+	MoveComponent(dae::GameObject* parent, glm::vec2 gridSize);
 	void Update() override;
 	bool CanMove(DesiredDirection direction);
 	glm::vec2 GetDirectionOffset(DesiredDirection dir) const;
 	bool IsNearGridIntersection(const glm::vec3& pos) const;
 	void SetDesiredDirection(DesiredDirection desiredDirection);
 	void SetSpeed(float speed);
+
+	DesiredDirection GetCurrentDirection() const {return m_CurrentDirection;}
 
 private:
 	float m_Speed;

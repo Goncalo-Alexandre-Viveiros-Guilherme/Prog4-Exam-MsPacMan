@@ -4,7 +4,7 @@
 #include "GameObject.h"
 #include <numbers>
 
-RotatorComponent::RotatorComponent(dae::GameObject& parent, float angle, float radius): Component(parent),
+RotatorComponent::RotatorComponent(dae::GameObject* parent, float angle, float radius): Component(parent),
 m_Radius(radius), m_AngleSpeed(angle), m_Angle(0)
 {
 	if (GetParent()->HasParent() == false) 

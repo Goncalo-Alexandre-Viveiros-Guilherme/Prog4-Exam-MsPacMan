@@ -30,7 +30,7 @@ public:
 class GraphCacheComponent final : public Component
 {
 public:
-	GraphCacheComponent(dae::GameObject& parent);
+	GraphCacheComponent(dae::GameObject* parent);
 	
 	void Update() override;
 	void Render() override;

@@ -24,6 +24,8 @@ public:
 	MoveCommand(float speed, DesiredDirection desiredDirection ,MoveComponent* moveComponent);
 	void Execute() override;
 
+	void SetDesiredDirection(DesiredDirection desiredDirection);
+
 private:
 	float m_Speed;
 	MoveComponent* m_MoveComponent;

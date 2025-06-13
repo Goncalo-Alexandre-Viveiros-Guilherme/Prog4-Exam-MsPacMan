@@ -3,7 +3,7 @@
 #include "BoxColliderComponent.h"
 #include "ServiceLocator.h"
 
-MoveComponent::MoveComponent(dae::GameObject& parent, glm::vec2 gridSize)
+MoveComponent::MoveComponent(dae::GameObject* parent, glm::vec2 gridSize)
     : Component(parent),
     m_Speed(5.f),
     m_CurrentDirection(DesiredDirection::None),
@@ -103,7 +103,7 @@ bool MoveComponent::IsNearGridIntersection(const glm::vec3& pos) const
     if (modX < 0) modX += m_GridSize.x;
     if (modY < 0) modY += m_GridSize.y;
 
-    const float leniency = 0.3f;
+    const float leniency = 0.1f;
     return (modX < m_GridSize.x * leniency || modX > m_GridSize.x * (1 - leniency)) &&
         (modY < m_GridSize.y * leniency || modY > m_GridSize.y * (1 - leniency));
 }

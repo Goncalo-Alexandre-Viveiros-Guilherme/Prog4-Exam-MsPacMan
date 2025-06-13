@@ -3,8 +3,8 @@
 #include <stdexcept>
 
 
-Component::Component(dae::GameObject& parent) 
-    : m_Parent(&parent), m_IsEnabled(true)
+Component::Component(dae::GameObject* parent) 
+    : m_Parent(parent), m_IsEnabled(true)
 {
 }
 

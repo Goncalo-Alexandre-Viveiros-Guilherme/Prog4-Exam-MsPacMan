@@ -4,7 +4,7 @@
 class FPSComponent final : public Component
 {
 public:
-    FPSComponent(dae::GameObject& parent);
+    FPSComponent(dae::GameObject* parent);
     void Update() override;
     float GetFps() const;
 

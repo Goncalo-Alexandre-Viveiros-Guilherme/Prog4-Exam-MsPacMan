@@ -2,7 +2,7 @@
 #include "EventDispatcher.h"
 #include "Events.h"
 
-PointsComponent::PointsComponent(dae::GameObject& parent) : Component(parent), m_CurrentPoints(0)
+PointsComponent::PointsComponent(dae::GameObject* parent) : Component(parent), m_CurrentPoints(0)
 {
 	EventDispatcher::GetInstance().AddListener<AddPointsEvent>
 		(nullptr, [this](const AddPointsEvent& event)

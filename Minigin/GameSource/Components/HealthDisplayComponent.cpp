@@ -5,12 +5,12 @@
 #include "Events.h"
 #include "EventDispatcher.h"
 
-HealthDisplayComponent::HealthDisplayComponent(dae::GameObject& parent, dae::GameObject* associatedGameObj) :
+HealthDisplayComponent::HealthDisplayComponent(dae::GameObject* parent, dae::GameObject* associatedGameObj) :
 	Component(parent)
 {
-	if (!parent.HasComponent<TextComponent>())
-		throw std::runtime_error("Error: " + parent.GetName() + " does not have a Text Component");
-	m_TextComponent = parent.GetComponent<TextComponent>();
+	if (!parent->HasComponent<TextComponent>())
+		throw std::runtime_error("Error: " + parent->GetName() + " does not have a Text Component");
+	m_TextComponent = parent->GetComponent<TextComponent>();
 
 	EventDispatcher::GetInstance().AddListener<HealthChangedEvent>
 		(associatedGameObj, [this](const HealthChangedEvent& event)

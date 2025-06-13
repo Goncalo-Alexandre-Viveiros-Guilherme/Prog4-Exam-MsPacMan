@@ -9,14 +9,14 @@
 class CollisionComponent : public Component
 {
 public:
-	CollisionComponent(dae::GameObject& parent, bool isStatic, bool blockOnCollision, float width, float height):
+	CollisionComponent(dae::GameObject* parent, bool isStatic, bool blockOnCollision, float width, float height):
 	Component(parent),
 	m_IsStatic{ isStatic },
 	m_BlockOnCollision(blockOnCollision),
 	m_Size(width, height)
 	{}
 
-	CollisionComponent(dae::GameObject& parent, bool isStatic, bool blockOnCollision, glm::vec2 size, glm::vec2 offset):
+	CollisionComponent(dae::GameObject* parent, bool isStatic, bool blockOnCollision, glm::vec2 size, glm::vec2 offset):
 	Component(parent),
 	m_IsStatic{ isStatic },
 	m_BlockOnCollision(blockOnCollision),
@@ -24,6 +24,14 @@ public:
 	m_Offset(offset)
 	{
 		
+	}
+
+	virtual ~CollisionComponent() {
+		// Clear all event vectors
+		m_OnEnterEvents.clear();
+		m_OnExitEvents.clear();
+		m_WhileInEvents.clear();
+		m_WhileOutEvents.clear();
 	}
 
 	void FixedUpdate() override{}

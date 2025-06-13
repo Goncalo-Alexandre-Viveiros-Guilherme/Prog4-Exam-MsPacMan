@@ -12,10 +12,11 @@ namespace dae
 	public:
 		Scene& CreateScene(const std::string& name);
 
-		void Update();
-		void FixedUpdate();
+		void Update() const;
+		void FixedUpdate() const;
 		void Render() const;
-		void DeleteObjects();
+		void DeleteObjects() const;
+		void DeleteScenes();
 		std::shared_ptr<Scene> FindSceneByName(std::string name) const;
 	private:
 		friend class Singleton<SceneManager>;

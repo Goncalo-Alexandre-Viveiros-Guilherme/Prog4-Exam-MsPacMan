@@ -4,7 +4,7 @@
 
 #include "Scene.h"
 
-void dae::SceneManager::Update()
+void dae::SceneManager::Update() const
 {
 	for(auto& scene : m_scenes)
 	{
@@ -12,7 +12,7 @@ void dae::SceneManager::Update()
 	}
 }
 
-void dae::SceneManager::FixedUpdate()
+void dae::SceneManager::FixedUpdate() const
 {
 	for (auto& scene : m_scenes)
 	{
@@ -28,12 +28,17 @@ void dae::SceneManager::Render() const
 	}
 }
 
-void dae::SceneManager::DeleteObjects()
+void dae::SceneManager::DeleteObjects() const
 {
 	for (const auto& scene : m_scenes)
 	{
 		scene->DeleteObjects();
 	}
+}
+
+void dae::SceneManager::DeleteScenes()
+{
+	m_scenes.clear();
 }
 
 std::shared_ptr<dae::Scene> dae::SceneManager::FindSceneByName(std::string name) const

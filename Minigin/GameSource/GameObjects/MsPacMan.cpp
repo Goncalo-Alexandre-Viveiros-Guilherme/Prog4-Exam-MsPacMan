@@ -14,8 +14,9 @@
 
 MsPacMan::MsPacMan(dae::Scene& scene) : m_MainGameObject(nullptr)
 {
-	m_MainGameObject = std::make_shared<dae::GameObject>("MsPacMan");
+	auto obj = std::make_unique<dae::GameObject>("MsPacMan");
 	SDL_Rect srcRect { 0,0,16,16};
+	m_MainGameObject = obj.get();
 	m_MainGameObject->AddComponent<SpriteComponent>("MsPacMan.png", srcRect);
 	m_MainGameObject->GetComponent<SpriteComponent>()->SetScale(2.f,2.f);
 
@@ -24,7 +25,7 @@ MsPacMan::MsPacMan(dae::Scene& scene) : m_MainGameObject(nullptr)
 	m_MainGameObject->AddComponent<MoveComponent>(singleGridSize);
 	m_MainGameObject->AddComponent<HealthComponent>(3.f);
 	m_MainGameObject->AddComponent<PointsComponent>();
-	scene.Add(m_MainGameObject);
+	scene.Add(std::move<>(obj));
 
 	auto moveComponent = m_MainGameObject->GetComponent<MoveComponent>();
 
@@ -44,5 +45,5 @@ MsPacMan::MsPacMan(dae::Scene& scene) : m_MainGameObject(nullptr)
 
 dae::GameObject* MsPacMan::GetGameObject() const
 {
-	return m_MainGameObject.get();
+	return m_MainGameObject;
 }

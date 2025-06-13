@@ -6,7 +6,7 @@
 #include <iomanip>
 #include <sstream>
 
-FPSComponent::FPSComponent(dae::GameObject& parent): Component(parent), m_Fps(0)
+FPSComponent::FPSComponent(dae::GameObject* parent): Component(parent), m_Fps(0)
 {
 }
 

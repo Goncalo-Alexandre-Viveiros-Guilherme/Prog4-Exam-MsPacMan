@@ -4,11 +4,11 @@
 #include "Renderer.h"
 #include "ResourceManager.h"
 
-ImageComponent::ImageComponent(dae::GameObject& parent): Component(parent)
+ImageComponent::ImageComponent(dae::GameObject* parent): Component(parent)
 {
 }
 
-ImageComponent::ImageComponent(dae::GameObject& parent, const std::string& filename): Component(parent)
+ImageComponent::ImageComponent(dae::GameObject* parent, const std::string& filename): Component(parent)
 {
 	m_texture = dae::ResourceManager::GetInstance().LoadTexture(filename);
 }

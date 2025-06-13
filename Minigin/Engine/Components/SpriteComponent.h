@@ -14,9 +14,9 @@ namespace dae
 class SpriteComponent : public Component
 {
 public:
-	SpriteComponent(dae::GameObject& parent, const std::string& filename, SDL_Rect srcRect, float rotation = 0);
+	SpriteComponent(dae::GameObject* parent, const std::string& filename, SDL_Rect srcRect, float rotation = 0);
 
-	SpriteComponent(dae::GameObject& parent, const std::string& filename, SDL_Rect srcRect, int dstWidth,int dstHeight, float rotation = 0);
+	SpriteComponent(dae::GameObject* parent, const std::string& filename, SDL_Rect srcRect, int dstWidth,int dstHeight, float rotation = 0);
 
 	void SetScale(float scaleX,float scaleY);
 

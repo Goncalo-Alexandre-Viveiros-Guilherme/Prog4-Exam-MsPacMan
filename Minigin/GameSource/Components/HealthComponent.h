@@ -5,7 +5,7 @@
 class HealthComponent : public Component, public Event
 {
 public:
-    HealthComponent(dae::GameObject& parent, float maxHealth);
+    HealthComponent(dae::GameObject* parent, float maxHealth);
 
     void AddToHealth(float value);
     float GetHealth() const;

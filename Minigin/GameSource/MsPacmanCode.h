@@ -4,11 +4,13 @@
 
 #include "Scene.h"
 
+class Ghost;
+
 class MsPacmanCode
 {
 public:
 	MsPacmanCode();
-	~MsPacmanCode() = default;
+	~MsPacmanCode();
 
 	void InitializeResources();
 	void LoadGameCode();
@@ -21,4 +23,5 @@ private:
 	using SpawnFunc = std::function<void(dae::Scene& scene, int gridX, int gridY, float rotation)>;
 	std::unordered_map<std::string, SpawnFunc> m_SpawnMap;
 	float m_MapScalingFactor {3};
+	std::vector<std::unique_ptr<Ghost>> m_Ghosts;
 };

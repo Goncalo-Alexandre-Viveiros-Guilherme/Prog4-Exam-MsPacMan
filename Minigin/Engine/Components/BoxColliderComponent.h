@@ -8,11 +8,11 @@ class Event;
 class BoxColliderComponent : public CollisionComponent
 {
 public:
-	BoxColliderComponent(dae::GameObject& parent,bool isStatic,bool blockOnCollision,float width, float height, bool debugRender = false);
+	BoxColliderComponent(dae::GameObject* parent,bool isStatic,bool blockOnCollision,float width, float height, bool debugRender = false);
 
-	BoxColliderComponent(dae::GameObject& parent,bool isStatic,bool blockOnCollision,glm::vec2 size,glm::vec2 offset, bool debugRender = false);
+	BoxColliderComponent(dae::GameObject* parent,bool isStatic,bool blockOnCollision,glm::vec2 size,glm::vec2 offset, bool debugRender = false);
 
-	~BoxColliderComponent();
+	~BoxColliderComponent() override;
 
 	bool WouldCollide(const glm::vec3 position) override;
 

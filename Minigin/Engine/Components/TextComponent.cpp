@@ -10,7 +10,7 @@
 #include "Texture2D.h"
 
 
-TextComponent::TextComponent(dae::GameObject& parent, const std::string& text, std::shared_ptr<dae::Font> font)
+TextComponent::TextComponent(dae::GameObject* parent, const std::string& text, std::shared_ptr<dae::Font> font)
 	: Component(parent), m_text(text), m_font(font)
 {
 	

@@ -8,10 +8,10 @@ BoxCollisionService::BoxCollisionService()
 BoxCollisionService::~BoxCollisionService()
 = default;
 
-void BoxCollisionService::RegisterCollisionObject(CollisionComponent* collisionComponent, Shape* shape)
+void BoxCollisionService::RegisterCollisionObject(CollisionComponent* collisionComponent, std::unique_ptr<Shape> shape)
 {
 	m_CollisionComponents.emplace_back(collisionComponent);
-	m_CollisionShapes.emplace_back(shape);
+	m_CollisionShapes.emplace_back(std::move<>(shape));
 }
 
 void BoxCollisionService::UnRegisterCollisionObject(CollisionComponent* collisionComponent)
@@ -32,7 +32,7 @@ std::vector<CollisionComponent*>& BoxCollisionService::GetCollisionComponents()
 	return m_CollisionComponents;
 }
 
-std::vector<Shape*>& BoxCollisionService::GetCollisionShapes()
+std::vector<std::unique_ptr<Shape>>& BoxCollisionService::GetCollisionShapes()
 {
 	return m_CollisionShapes;
 }

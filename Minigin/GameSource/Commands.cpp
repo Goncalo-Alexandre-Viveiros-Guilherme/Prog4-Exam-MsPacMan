@@ -16,6 +16,11 @@ void MoveCommand::Execute()
     m_MoveComponent->SetDesiredDirection(m_DesiredDirection);
 }
 
+void MoveCommand::SetDesiredDirection(const DesiredDirection desiredDirection)
+{
+    m_DesiredDirection = desiredDirection;
+}
+
 AddHealthCommand::AddHealthCommand(float amountToAdd, HealthComponent* healthComponent): m_ValueToAdd(amountToAdd),m_HealthComponent(healthComponent)
 {
 }

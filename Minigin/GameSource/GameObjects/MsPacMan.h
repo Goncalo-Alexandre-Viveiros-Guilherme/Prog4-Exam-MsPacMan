@@ -17,5 +17,5 @@ public:
 
 	dae::GameObject* GetGameObject() const;
 private:
-	std::shared_ptr<dae::GameObject> m_MainGameObject;
+	dae::GameObject* m_MainGameObject;
 };

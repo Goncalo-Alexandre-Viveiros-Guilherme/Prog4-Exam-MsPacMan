@@ -9,7 +9,7 @@ namespace dae
 class Component
 {
 public:
-	explicit Component(dae::GameObject& parent); 
+	explicit Component(dae::GameObject* parent); 
     virtual ~Component() = default;
     Component(const Component& other) = delete;
     Component(Component&& other) = delete;

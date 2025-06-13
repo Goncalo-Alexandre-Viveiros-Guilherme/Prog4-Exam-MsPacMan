@@ -9,7 +9,7 @@
 #include <iostream>
 
 
-GraphCacheComponent::GraphCacheComponent(dae::GameObject& parent) : Component(parent)
+GraphCacheComponent::GraphCacheComponent(dae::GameObject* parent) : Component(parent)
 {
 }
 

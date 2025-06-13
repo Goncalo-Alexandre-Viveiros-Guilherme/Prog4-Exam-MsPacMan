@@ -6,7 +6,7 @@
 class RotatorComponent : public Component
 {
 public:
-	RotatorComponent(dae::GameObject& parent,float angle,float radius);
+	RotatorComponent(dae::GameObject* parent,float angle,float radius);
 
 	void Update() override;
 	void SetAngleSpeed(float angleSpeed);

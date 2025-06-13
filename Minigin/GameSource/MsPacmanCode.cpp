@@ -21,11 +21,18 @@
 #include <iostream>
 
 #include "BoxColliderComponent.h"
+#include "Ghosts.h"
 #include "SpriteComponent.h"
+#include <GhostStates.h>
 
 MsPacmanCode::MsPacmanCode()
+= default;
+
+MsPacmanCode::~MsPacmanCode()
 {
+	m_SpawnMap.clear();
 }
+
 
 void MsPacmanCode::InitializeResources()
 {
@@ -57,6 +64,11 @@ void MsPacmanCode::InitializeResources()
 
 	ParseCSVAndSpawn("level1.csv", scene);
 
+	for (const auto& ghost : m_Ghosts)
+	{
+		ghost->InitializeFSM(scene);
+	}
+
 //	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadUp }, KeyState::Down, 0.f, -500.0f, pacman->GetComponent<MoveComponent>());
 //	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadDown }, KeyState::Down, 0.f, 500.0f, pacman->GetComponent<MoveComponent>());
 //	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadLeft }, KeyState::Down, -500.0f, 0.f, pacman->GetComponent<MoveComponent>());
@@ -72,15 +84,15 @@ void MsPacmanCode::LoadGameCode()
 {
 	InitializeResources();
 
-	//auto& soundService = ServiceLocator::GetAudioService();
+	auto& soundService = ServiceLocator::GetAudioService();
 
-	//soundService.AddMusic("skibidi", "Sounds/ms_start.wav");
-	//soundService.PlayMusic("skibidi", 100, 1);
+	soundService.AddMusic("skibidi", "Sounds/ms_start.wav");
+	soundService.PlayMusic("skibidi", 100, 1);
 }
 
 void MsPacmanCode::AddWall(dae::Scene& scene, int col, int row ,int srcX, int srcY, int wallType, float rotation)
 {
-	auto wall = std::make_shared<dae::GameObject>("Wall");
+	auto wall = std::make_unique<dae::GameObject>("Wall");
 	SDL_Rect srcRect{ srcX,srcY,8,8 };
 	int dstH{ 8 };
 	int dstW{ 8 };
@@ -93,7 +105,7 @@ void MsPacmanCode::AddWall(dae::Scene& scene, int col, int row ,int srcX, int sr
 	wall->AddComponent<SpriteComponent>("WallsTransparent.png", srcRect, dstW, dstH, rotation);
 	wall->GetComponent<SpriteComponent>()->SetScale(3, 3);
 
-	scene.Add(wall);
+	scene.Add(std::move<>(wall));
 }
 
 void MsPacmanCode::InitSpawnMap()
@@ -101,7 +113,7 @@ void MsPacmanCode::InitSpawnMap()
 	for (int i = 0; i <= 8; ++i)
 	{
 		const int spriteOffsetX = (i * 8) + (2 * i);
-		m_SpawnMap[std::to_string(i)] = [spriteOffsetX, i ,this](dae::Scene& scene, int x, int y, float rotation) {
+		m_SpawnMap[std::to_string(i)] = [spriteOffsetX, i,this](dae::Scene& scene, int x, int y, float rotation) {
 			AddWall(scene, x, y, spriteOffsetX, 0, i, rotation); };
 	}
 
@@ -112,26 +124,26 @@ void MsPacmanCode::InitSpawnMap()
 
 		auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 18);
 
-		auto go = std::make_shared<dae::GameObject>("MsPacManLives");
+		auto go = std::make_unique<dae::GameObject>("MsPacManLives");
 		go->SetLocalPosition(200, 750);
 		go->AddComponent<TextComponent>("# lives: 3", font);
 		go->AddComponent<HealthDisplayComponent>(msPacMan.GetGameObject());
-		scene.Add(go);
+		scene.Add(std::move<>(go));
 
-		go = std::make_shared<dae::GameObject>("MsPacmanPoints");
+		go = std::make_unique<dae::GameObject>("MsPacmanPoints");
 		go->SetLocalPosition(400, 750);
 		go->AddComponent<TextComponent>("Score: 0", font);
 		go->AddComponent<PointDisplayComponent>(msPacMan.GetGameObject());
-		scene.Add(go);
+		scene.Add(std::move<>(go));
 	};
 
 	m_SpawnMap["PD"] = [this](dae::Scene& scene, int x, int y, float rotation) {
-			auto pacDot = std::make_shared<dae::GameObject>("Pac-Dot");
+			auto pacDot = std::make_unique<dae::GameObject>("Pac-Dot");
 			SDL_Rect srcRect{ 0,0,8,8 };
 			pacDot->SetLocalPosition((x * 8.f) * m_MapScalingFactor, ((y * 8.f) * m_MapScalingFactor));
 			pacDot->AddComponent<SpriteComponent>("Pac-Dot.png", srcRect, rotation);
 			pacDot->GetComponent<SpriteComponent>()->SetScale(m_MapScalingFactor, m_MapScalingFactor);
-			pacDot->AddComponent<BoxColliderComponent>(true, false, glm::vec2{2 * m_MapScalingFactor,2 * m_MapScalingFactor }, 
+			pacDot->AddComponent<BoxColliderComponent>(true, false, glm::vec2{2 * m_MapScalingFactor,2 * m_MapScalingFactor },
 				glm::vec2{3* m_MapScalingFactor,3 * m_MapScalingFactor }/*, true*/);
 
 			pacDot->GetComponent<BoxColliderComponent>()->AddOnEnterEvent(std::make_unique<AddPointsEvent>(10.f));
@@ -144,11 +156,11 @@ void MsPacmanCode::InitSpawnMap()
 					}
 				);
 
-			scene.Add(pacDot);
+			scene.Add(std::move<>(pacDot));
 		};
 
 	m_SpawnMap["PP"] = [this](dae::Scene& scene, int x, int y, float rotation) {
-		auto powerPellet = std::make_shared<dae::GameObject>("Power-Pellet");
+		auto powerPellet = std::make_unique<dae::GameObject>("Power-Pellet");
 		SDL_Rect srcRect{ 0,0,8,8 };
 		powerPellet->SetLocalPosition((x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor);
 		powerPellet->AddComponent<SpriteComponent>("Power-Pellet.png", srcRect, rotation);
@@ -165,8 +177,44 @@ void MsPacmanCode::InitSpawnMap()
 				}
 			);
 
-		scene.Add(powerPellet);
+		scene.Add(std::move<>(powerPellet));
 		};
+	
+		m_SpawnMap["Blinky"] = [this](dae::Scene& scene, int x, int y, float rotation) {
+			rotation;
+
+			std::unique_ptr<Blinky> blinky = std::make_unique<Blinky>(scene);
+			blinky->GetGameObject()->SetLocalPosition((x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor);
+
+			m_Ghosts.emplace_back(std::move<>(blinky));
+		};
+
+		m_SpawnMap["Inky"] = [this](dae::Scene& scene, int x, int y, float rotation) {
+			rotation;
+
+			std::unique_ptr<Inky> inky = std::make_unique<Inky>(scene);
+			inky->GetGameObject()->SetLocalPosition((x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor);
+
+			m_Ghosts.emplace_back(std::move<>(inky));
+			};
+
+		m_SpawnMap["Pinky"] = [this](dae::Scene& scene, int x, int y, float rotation) {
+			rotation;
+
+			std::unique_ptr<Pinky> pinky = std::make_unique<Pinky>(scene);
+			pinky->GetGameObject()->SetLocalPosition((x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor);
+
+			m_Ghosts.emplace_back(std::move<>(pinky));
+			};
+
+		m_SpawnMap["Clyde"] = [this](dae::Scene& scene, int x, int y, float rotation) {
+			rotation;
+
+			std::unique_ptr<Clyde> clyde = std::make_unique<Clyde>(scene);
+			clyde->GetGameObject()->SetLocalPosition((x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor);
+
+			m_Ghosts.emplace_back(std::move<>(clyde));
+			};
 }
 
 inline void Trim(std::string& str)
@@ -231,11 +279,7 @@ void MsPacmanCode::ParseCSVAndSpawn(const std::string& filepath, dae::Scene& sce
 					float rotation = 0.0f;
 
 					cellStream >> type;
-
-					if (cellStream >> rotation)
-					{
-						// Rotation value was successfully read
-					}
+					cellStream >> rotation;
 
 					auto it = m_SpawnMap.find(type);
 					if (it != m_SpawnMap.end())
@@ -247,7 +291,7 @@ void MsPacmanCode::ParseCSVAndSpawn(const std::string& filepath, dae::Scene& sce
 						std::cerr << "Unknown cell type: " << type << " at (row=" << row << ", col=" << col << ")\n";
 					}
 				}
-				catch (const std::exception& e)
+				catch (const std::exception& e) 
 				{
 					std::cerr << "Failed to parse cell \"" << cell << "\" at (row=" << row << ", col=" << col << "): " << e.what() << "\n";
 				}

@@ -8,7 +8,7 @@ class TextComponent;
 class PointDisplayComponent : public Component
 {
 public:
-	PointDisplayComponent(dae::GameObject& parent, dae::GameObject* associatedGameObj);
+	PointDisplayComponent(dae::GameObject* parent, dae::GameObject* associatedGameObj);
 	void UpdateDisplay(float health) const;
 
 private:

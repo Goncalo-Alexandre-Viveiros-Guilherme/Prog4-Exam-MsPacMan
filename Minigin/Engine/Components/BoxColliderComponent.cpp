@@ -5,20 +5,20 @@
 #include "Renderer.h"
 #include "ServiceLocator.h"
 
-BoxColliderComponent::BoxColliderComponent(dae::GameObject& parent, bool isStatic, bool blockOnCollision, float width, float height, bool debugRender):
+BoxColliderComponent::BoxColliderComponent(dae::GameObject* parent, bool isStatic, bool blockOnCollision, float width, float height, bool debugRender):
 CollisionComponent(parent,isStatic,blockOnCollision,width,height),
 m_DebugRenderingActive(debugRender)
 {
-	ServiceLocator::GetCollisionService().RegisterCollisionObject(this, new BoxShape{width,height});
+	ServiceLocator::GetCollisionService().RegisterCollisionObject(this, std::make_unique<BoxShape>(width, height));
 	m_Location = GetParent()->GetLocalPosition() + glm::vec3(m_Offset, 0);
 }
 
-BoxColliderComponent::BoxColliderComponent(dae::GameObject& parent, bool isStatic, bool blockOnCollision,
+BoxColliderComponent::BoxColliderComponent(dae::GameObject* parent, bool isStatic, bool blockOnCollision,
 	glm::vec2 size, glm::vec2 offset, bool debugRender):
 CollisionComponent(parent, isStatic, blockOnCollision, size,offset),
 m_DebugRenderingActive(debugRender)
 {
-	ServiceLocator::GetCollisionService().RegisterCollisionObject(this, new BoxShape{ size.x,size.y });
+	ServiceLocator::GetCollisionService().RegisterCollisionObject(this, std::make_unique<BoxShape>(size.x, size.y));
 	m_Location = GetParent()->GetLocalPosition() + glm::vec3(m_Offset, 0);
 }
 
@@ -81,7 +81,7 @@ void BoxColliderComponent::FixedUpdate()
 	for (int idx{}; idx < collisionComponents.size(); idx++)
 	{
 		const glm::vec2 otherObjPos = collisionComponents[idx]->GetLocalColliderPosition();
-		const auto* collisionShape = collisionShapes[idx];
+		const auto collisionShape = collisionShapes[idx].get();
 		const bool isBlockingCollision = collisionComponents[idx]->GetIsBlocking();
 
 		if (this == collisionComponents[idx])

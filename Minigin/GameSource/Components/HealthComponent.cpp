@@ -4,7 +4,7 @@
 #include "Events.h"
 #include "HealthDisplayComponent.h"
 
-HealthComponent::HealthComponent(dae::GameObject& parent, float maxHealth) :Component(parent), m_MaxHealth(maxHealth), m_Health(maxHealth)
+HealthComponent::HealthComponent(dae::GameObject* parent, float maxHealth) :Component(parent), m_MaxHealth(maxHealth), m_Health(maxHealth)
 {
 
 }

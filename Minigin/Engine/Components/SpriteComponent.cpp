@@ -10,7 +10,7 @@
 #include "Texture2D.h"
 
 
-SpriteComponent::SpriteComponent(dae::GameObject& parent, const std::string& filename, SDL_Rect srcRect,float rotation):
+SpriteComponent::SpriteComponent(dae::GameObject* parent, const std::string& filename, SDL_Rect srcRect,float rotation):
 	Component(parent),
 	m_SrcRect(srcRect),
 	m_SpriteRot(rotation)
@@ -18,7 +18,7 @@ SpriteComponent::SpriteComponent(dae::GameObject& parent, const std::string& fil
 	m_Texture = dae::ResourceManager::GetInstance().LoadTexture(filename);
 }
 
-SpriteComponent::SpriteComponent(dae::GameObject& parent, const std::string& filename, SDL_Rect srcRect, int dstWidth,int dstHeight, float rotation): 
+SpriteComponent::SpriteComponent(dae::GameObject* parent, const std::string& filename, SDL_Rect srcRect, int dstWidth,int dstHeight, float rotation): 
 	Component(parent),
 	m_SrcRect(srcRect),
 	m_DstWidth(dstWidth),

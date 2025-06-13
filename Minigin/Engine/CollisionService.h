@@ -13,10 +13,10 @@ class CollisionService
 public:
 	virtual ~CollisionService() = default;
 
-	virtual void RegisterCollisionObject(CollisionComponent* collisionComponent,Shape* shape) = 0;
+	virtual void RegisterCollisionObject(CollisionComponent* collisionComponent,std::unique_ptr<Shape> shape) = 0;
 	virtual void UnRegisterCollisionObject(CollisionComponent* boxColliderComponent) = 0;
 	virtual std::vector<CollisionComponent*>& GetCollisionComponents() = 0;
-	virtual std::vector<Shape*>& GetCollisionShapes() = 0;
+	virtual std::vector<std::unique_ptr<Shape>>& GetCollisionShapes() = 0;
 	virtual std::vector<bool>& GetIsBlockingCollisions() = 0;
 };
 #endif // COLLISIONSERVICE_H

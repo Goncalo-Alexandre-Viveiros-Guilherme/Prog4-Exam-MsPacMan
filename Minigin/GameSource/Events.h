@@ -1,4 +1,6 @@
 #pragma once
+#include <map>
+
 #include "EventDispatcher.h"
 
 class PointsComponent;
@@ -43,21 +45,3 @@ public:
 	dae::GameObject* m_GameObjDestroy{};
 };
 
-
-namespace FSM
-{
-	enum States
-	{
-		NullStarterState,
-		MovingState
-	};
-	class NewState : public Event
-	{
-	public:
-		NewState(States newState): m_NewState(newState)
-		{}
-
-		States m_NewState;
-	};
-
-};
