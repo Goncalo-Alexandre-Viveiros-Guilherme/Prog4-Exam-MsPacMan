@@ -25,7 +25,9 @@ add_executable(${TARGET_NAME} ${TARGET_PARAM}
     Minigin/GameSource/GameObjects/MsPacMan.cpp
     Minigin/GameSource/Events.h 
     Minigin/GameSource/Components/MoveComponent.cpp
-   Minigin/GameSource/Commands.cpp)
+    Minigin/GameSource/Commands.cpp 
+    Minigin/GameSource/GameObjects/Ghosts.cpp 
+    Minigin/GameSource/States/GhostStates.cpp)
 
 add_library(miniginLib STATIC 
    Minigin/Engine/GameObject.cpp
@@ -59,7 +61,9 @@ add_library(miniginLib STATIC
    Minigin/Engine/ServiceLocator.cpp 
    Minigin/Engine/CollisionService.h 
    Minigin/Engine/BoxCollisionService.cpp
-   Minigin/Engine/Shapes.h "Minigin/Engine/Components/CollisionComponent.h")
+   Minigin/Engine/Shapes.h 
+   Minigin/Engine/Components/CollisionComponent.h 
+   Minigin/Engine/FSM.cpp "Minigin/Engine/Components/FSMComponent.cpp")
  target_link_libraries(${TARGET_NAME} PUBLIC miniginLib)
 
 # enable c++20 features
@@ -337,6 +341,7 @@ set(MINIGIN_INCLUDE_DIRS
   ${CMAKE_SOURCE_DIR}/Minigin/GameSource/
   ${CMAKE_SOURCE_DIR}/Minigin/GameSource/Components/
   ${CMAKE_SOURCE_DIR}/Minigin/GameSource/GameObjects/
+  ${CMAKE_SOURCE_DIR}/Minigin/GameSource/States/
   ${CMAKE_SOURCE_DIR}/Minigin/Components/
   ${CMAKE_SOURCE_DIR}/Minigin/Managers/
   ${CMAKE_SOURCE_DIR}/Minigin/Rendering/
