@@ -20,8 +20,8 @@ namespace fs = std::filesystem;
 
 void load()
 {
-	MsPacmanCode msPacmanCode {};
-	msPacmanCode.LoadGameCode();
+	MsPacmanCode msPacmanCode {GameModes::Normal,};
+	msPacmanCode.LoadGameCode("level1.csv");
 }
 
 int main(int, char*[])

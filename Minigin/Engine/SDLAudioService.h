@@ -43,6 +43,8 @@ public:
     void SetSoundVolume(std::string soundName, int volume) override;
     void SetMusicVolume(int volume) override;
 
+    void Clear() override;
+
     void Run();
 
 private:
@@ -140,5 +142,11 @@ public:
     {
         _real_ss->SetMusicVolume(volume);
         std::cout << "Set music volume to: " << volume << std::endl;
+    }
+
+    void Clear() override
+    {
+        _real_ss->Clear();
+        std::cout << "Cleared Sound System";
     }
 };

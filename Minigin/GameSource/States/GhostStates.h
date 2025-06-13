@@ -1,3 +1,4 @@
+#include "Commands.h"
 #include "FSM.h"
 #include "vec2.hpp"
 
@@ -26,8 +27,10 @@ namespace FSM
 		MoveComponent* m_MoveComponent	{ nullptr };
 		dae::GameObject* m_Target		{ nullptr };
 		dae::GameObject* m_MainAgent	{ nullptr };
-		int m_LastCellPosX				{ 0 };
-		int m_LastCellPosY				{ 0 };
+		// Add to ChaseState class
+	protected:
+		glm::ivec2 m_LastGridPos{ -1, -1 };
+		bool m_HasRecalculatedThisCell = false;
 	};
 
 	class BlinkyChaseState : public ChaseState
@@ -38,6 +41,7 @@ namespace FSM
 
 		virtual void OnEnter() override{}
 		virtual void Update() override;
+		DesiredDirection GetReverseDirection(DesiredDirection dir);
 		virtual void OnExit() override{}
 
 	};

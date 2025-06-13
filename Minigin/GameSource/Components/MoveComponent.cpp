@@ -19,21 +19,17 @@ void MoveComponent::Update()
 {
     auto* parent = GetParent();
     auto pos = parent->GetWorldPosition();
-    const bool nearIntersection = IsNearGridIntersection(pos);
 
-    if (nearIntersection)
-    {
-        if (m_DesiredDirection != m_CurrentDirection && CanMove(m_DesiredDirection))
-        {
-            pos.x = std::round(pos.x / m_GridSize.x) * m_GridSize.x;
-            pos.y = std::round(pos.y / m_GridSize.y) * m_GridSize.y;
-            m_CurrentDirection = m_DesiredDirection;
-        }
+    // Always align to grid when changing directions
+    if (m_DesiredDirection != m_CurrentDirection && CanMove(m_DesiredDirection)) {
+        pos.x = std::round(pos.x / m_GridSize.x) * m_GridSize.x;
+        pos.y = std::round(pos.y / m_GridSize.y) * m_GridSize.y;
+        m_CurrentDirection = m_DesiredDirection;
+        parent->SetLocalPosition(pos.x, pos.y);
     }
 
     glm::vec3 move{};
-    switch (m_CurrentDirection)
-    {
+    switch (m_CurrentDirection) {
     case DesiredDirection::Up:    move.y = -1; break;
     case DesiredDirection::Down:  move.y = 1;  break;
     case DesiredDirection::Left:  move.x = -1; break;
@@ -44,21 +40,24 @@ void MoveComponent::Update()
     float delta = Time::GetInstance().GetDeltaTime();
     glm::vec3 newPos = pos + move * m_Speed * delta;
 
-    if (!m_CollisionComponent->WouldCollide(newPos))
-    {
+    if (!m_CollisionComponent->WouldCollide(newPos)) {
         parent->SetLocalPosition(newPos.x, newPos.y);
     }
-    else if (m_CurrentDirection != DesiredDirection::None)
-    {
+    else if (m_CurrentDirection != DesiredDirection::None) {
+        // Only stop if we hit an obstacle
         m_CurrentDirection = DesiredDirection::None;
-
-        glm::vec3 aligned{
-            std::round(pos.x / m_GridSize.x) * m_GridSize.x,
-            std::round(pos.y / m_GridSize.y) * m_GridSize.y,
-            0
-        };
-        parent->SetLocalPosition(aligned.x, aligned.y);
+        parent->SetLocalPosition(pos.x, pos.y);  // Revert to previous position
     }
+}
+
+// Add this method
+bool MoveComponent::IsAtGridCenter(const glm::vec3& pos) const {
+    const float threshold = 1.0f;  // pixels from center
+    glm::vec2 gridCenter = {
+        std::round(pos.x / m_GridSize.x) * m_GridSize.x,
+        std::round(pos.y / m_GridSize.y) * m_GridSize.y
+    };
+    return glm::distance(glm::vec2(pos), gridCenter) < threshold;
 }
 
 bool MoveComponent::CanMove(DesiredDirection direction)

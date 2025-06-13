@@ -7,8 +7,6 @@ FSM::ChaseState::ChaseState(dae::GameObject* mainAgent)
 {
 	m_MoveComponent = mainAgent->GetComponent<MoveComponent>();
 
-    m_MoveComponent->SetDesiredDirection(Left);
-
 	m_MainAgent = mainAgent;
 
 	assert(m_MoveComponent && "move component not found in main agent");
@@ -16,6 +14,29 @@ FSM::ChaseState::ChaseState(dae::GameObject* mainAgent)
 
 void FSM::ChaseState::OnEnter()
 {
+	if (const auto currentDir = m_MoveComponent->GetCurrentDirection(); currentDir == None)
+    {
+        m_MoveComponent->SetDesiredDirection(Left);
+    }
+    else
+    {
+        switch (currentDir)
+        {
+        case Up:
+            m_MoveComponent->SetDesiredDirection(Down);
+            break;
+        case Down:
+            m_MoveComponent->SetDesiredDirection(Up);
+            break;
+        case Left:
+            m_MoveComponent->SetDesiredDirection(Right);
+            break;
+        case Right:
+            m_MoveComponent->SetDesiredDirection(Left);
+            break;
+        }
+
+    }
 }
 
 FSM::BlinkyChaseState::BlinkyChaseState(dae::GameObject* mainAgent, dae::GameObject* objectToChase): ChaseState(mainAgent)
@@ -28,46 +49,75 @@ void FSM::BlinkyChaseState::Update()
     ChaseState::Update();
 
     const auto mainAgentPos = m_MainAgent->GetLocalPosition();
-    const auto currentCellPosX = static_cast<int>(mainAgentPos.x) % (8 * 3);
-    const auto currentCellPosY = static_cast<int>(mainAgentPos.y) % (8 * 3);
+    const glm::vec2 gridSize = m_MoveComponent->GetGridSize();
 
-    if (currentCellPosX !=  m_LastCellPosX || currentCellPosY != m_LastCellPosY)
+    // Calculate current grid position
+    const glm::ivec2 gridPos{
+        static_cast<int>(std::round(mainAgentPos.x / gridSize.x)),
+        static_cast<int>(std::round(mainAgentPos.y / gridSize.y))
+    };
+
+    // Only recalculate when entering a new grid cell
+    if (gridPos != m_LastGridPos)
     {
-        m_LastCellPosX = currentCellPosX;
-        m_LastCellPosY = currentCellPosY;
+        m_LastGridPos = gridPos;
+        m_HasRecalculatedThisCell = false;
+    }
 
-        if (m_MoveComponent->IsNearGridIntersection(mainAgentPos))
-        {
-            const glm::vec2 targetPos = m_Target->GetLocalPosition();
-            const glm::vec2 currentPos = m_MainAgent->GetLocalPosition();
+    // Only make decisions at intersections and not already recalculated
+    if (!m_HasRecalculatedThisCell &&
+        m_MoveComponent->IsAtGridCenter(mainAgentPos) &&
+        m_MoveComponent->IsNearGridIntersection(mainAgentPos))
+    {
+        m_HasRecalculatedThisCell = true;
 
-            std::vector<DesiredDirection> possibleDirections;
-            const DesiredDirection currentDir = m_MoveComponent->GetCurrentDirection();
+        const glm::vec2 targetPos = m_Target->GetLocalPosition();
+        const DesiredDirection currentDir = m_MoveComponent->GetCurrentDirection();
 
-            if (currentDir != Left) possibleDirections.push_back(Left);
-            if (currentDir != Right) possibleDirections.push_back(Right);
-            if (currentDir != Up) possibleDirections.push_back(Up);
-            if (currentDir != Down) possibleDirections.push_back(Down);
+        std::vector<DesiredDirection> possibleDirections;
 
-            DesiredDirection bestDir = currentDir;
-            float shortestDistance = FLT_MAX;
+        // Get valid directions (can't reverse unless stuck)
+        if (currentDir != Right && m_MoveComponent->CanMove(Left))
+            possibleDirections.push_back(Left);
+        if (currentDir != Left && m_MoveComponent->CanMove(Right))
+            possibleDirections.push_back(Right);
+        if (currentDir != Down && m_MoveComponent->CanMove(Up))
+            possibleDirections.push_back(Up);
+        if (currentDir != Up && m_MoveComponent->CanMove(Down))
+            possibleDirections.push_back(Down);
 
-            for (DesiredDirection dir : possibleDirections) {
-                if (m_MoveComponent->CanMove(dir)) {
-                    glm::vec2 newPos = currentPos + m_MoveComponent->GetDirectionOffset(dir);
-                    float distance = glm::distance(newPos, targetPos);
-
-                    if (distance < shortestDistance) {
-                        shortestDistance = distance;
-                        bestDir = dir;
-                    }
-                }
-            }
-
-            if (bestDir != currentDir) {
-                m_MoveComponent->SetDesiredDirection(bestDir);
+        // If no valid directions, allow reverse as last resort
+        if (possibleDirections.empty() && currentDir != None) {
+            if (m_MoveComponent->CanMove(GetReverseDirection(currentDir))) {
+                possibleDirections.push_back(GetReverseDirection(currentDir));
             }
         }
+
+        DesiredDirection bestDir = currentDir;
+        float minDistance = FLT_MAX;
+
+        for (DesiredDirection dir : possibleDirections) {
+            glm::vec2 newPos = glm::vec2 (mainAgentPos) + m_MoveComponent->GetDirectionOffset(dir);
+            float distance = glm::distance(newPos, targetPos);
+
+            if (distance < minDistance) {
+                minDistance = distance;
+                bestDir = dir;
+            }
+        }
+
+        if (bestDir != currentDir) {
+            m_MoveComponent->SetDesiredDirection(bestDir);
+        }
     }
-   
+}
+
+DesiredDirection FSM::BlinkyChaseState::GetReverseDirection(DesiredDirection dir) {
+    switch (dir) {
+    case Up: return Down;
+    case Down: return Up;
+    case Left: return Right;
+    case Right: return Left;
+    default: return None;
+    }
 }

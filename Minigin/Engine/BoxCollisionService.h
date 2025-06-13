@@ -14,6 +14,8 @@ public:
 	virtual std::vector<std::unique_ptr<Shape>>& GetCollisionShapes() override;
 	virtual std::vector<bool>& GetIsBlockingCollisions() override;
 
+	void Clear() override;
+
 private:
 	std::vector<CollisionComponent*> m_CollisionComponents;
 	std::vector<std::unique_ptr<Shape>> m_CollisionShapes;

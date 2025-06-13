@@ -22,4 +22,6 @@ public:
 	virtual void SetChannelVolume(int channel, int volume) = 0;
 	virtual void SetSoundVolume(std::string soundName, int volume) = 0;
 	virtual void SetMusicVolume(int volume) = 0;
+
+	virtual void Clear() = 0;
 };

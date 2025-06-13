@@ -1,6 +1,8 @@
 #ifndef COLLISIONCOMPONENT_H
 #define COLLISIONCOMPONENT_H
 
+#include <map>
+
 #include "Component.h"
 #include "EventDispatcher.h"
 #include "vec2.hpp"
@@ -58,35 +60,87 @@ public:
 		m_OnExitEvents.emplace_back(std::move(eventToAdd));
 	}
 
-	void OnEnterEvent() const
+	virtual void AddOnEnterEvent(std::unique_ptr<Event> eventToAdd,dae::GameObject* objectToTriggerEvent)
+	{
+		m_OnEnterKeyEvents[objectToTriggerEvent].emplace_back(std::move(eventToAdd));
+	}
+
+	virtual void AddWhileInEvent(std::unique_ptr<Event> eventToAdd, dae::GameObject* objectToTriggerEvent)
+	{
+		m_WhileInKeyEvents[objectToTriggerEvent].emplace_back(std::move(eventToAdd));
+	}
+
+	virtual void AddWhileOutEvent(std::unique_ptr<Event> eventToAdd, dae::GameObject* objectToTriggerEvent)
+	{
+		m_WhileOutKeyEvents[objectToTriggerEvent].emplace_back(std::move(eventToAdd));
+	}
+
+	virtual void AddOnExitEvent(std::unique_ptr<Event> eventToAdd, dae::GameObject* objectToTriggerEvent)
+	{
+		m_OnExitKeyEvents[objectToTriggerEvent].emplace_back(std::move(eventToAdd));
+	}
+
+	void OnEnterEvent(dae::GameObject* otherGameObject) const
 	{
 		for (auto& onEnterEvent : m_OnEnterEvents)
 		{
 			EventDispatcher::GetInstance().Dispatch(*onEnterEvent, GetParent());
 		}
-	}
 
-	void OnExitEvent() const
-	{
-		for (auto& onExitEvent : m_OnExitEvents)
+		if (auto it = m_OnEnterKeyEvents.find(otherGameObject); it != m_OnEnterKeyEvents.end())
 		{
-			EventDispatcher::GetInstance().Dispatch(*onExitEvent, GetParent());
+			for (auto& event : it->second)
+			{
+				EventDispatcher::GetInstance().Dispatch(*event, GetParent());
+			}
 		}
 	}
 
-	void WhileInEvent() const
+	void OnExitEvent(dae::GameObject* otherGameObject) const
 	{
-		for (auto& whileInEvent : m_WhileInEvents)
+		for (auto& onEnterEvent : m_OnEnterEvents)
 		{
-			EventDispatcher::GetInstance().Dispatch(*whileInEvent, GetParent());
+			EventDispatcher::GetInstance().Dispatch(*onEnterEvent, GetParent());
+		}
+
+		if (auto it = m_OnEnterKeyEvents.find(otherGameObject); it != m_OnEnterKeyEvents.end())
+		{
+			for (auto& event : it->second)
+			{
+				EventDispatcher::GetInstance().Dispatch(*event, GetParent());
+			}
 		}
 	}
 
-	void WhileOutEvent() const
+	void WhileInEvent(dae::GameObject* otherGameObject) const
 	{
-		for (auto& whileOutEvent : m_WhileOutEvents)
+		for (auto& onEnterEvent : m_OnEnterEvents)
 		{
-			EventDispatcher::GetInstance().Dispatch(*whileOutEvent, GetParent());
+			EventDispatcher::GetInstance().Dispatch(*onEnterEvent, GetParent());
+		}
+
+		if (auto it = m_OnEnterKeyEvents.find(otherGameObject); it != m_OnEnterKeyEvents.end())
+		{
+			for (auto& event : it->second)
+			{
+				EventDispatcher::GetInstance().Dispatch(*event, GetParent());
+			}
+		}
+	}
+
+	void WhileOutEvent(dae::GameObject* otherGameObject) const
+	{
+		for (auto& onEnterEvent : m_OnEnterEvents)
+		{
+			EventDispatcher::GetInstance().Dispatch(*onEnterEvent, GetParent());
+		}
+
+		if (auto it = m_OnEnterKeyEvents.find(otherGameObject); it != m_OnEnterKeyEvents.end())
+		{
+			for (auto& event : it->second)
+			{
+				EventDispatcher::GetInstance().Dispatch(*event, GetParent());
+			}
 		}
 	}
 
@@ -109,5 +163,10 @@ protected:
 	std::vector<std::unique_ptr<Event>> m_OnExitEvents{};
 	std::vector<std::unique_ptr<Event>> m_WhileInEvents{};
 	std::vector<std::unique_ptr<Event>> m_WhileOutEvents{};
+
+	std::unordered_map<dae::GameObject*, std::vector<std::unique_ptr<Event>>> m_OnEnterKeyEvents{};
+	std::unordered_map<dae::GameObject*, std::vector<std::unique_ptr<Event>>> m_OnExitKeyEvents{};
+	std::unordered_map<dae::GameObject*, std::vector<std::unique_ptr<Event>>> m_WhileInKeyEvents{};
+	std::unordered_map<dae::GameObject*, std::vector<std::unique_ptr<Event>>> m_WhileOutKeyEvents{};
 };
 #endif // COLLISIONCOMPONENT_H

@@ -12,10 +12,11 @@ namespace dae
 class MsPacMan
 {
 public:
-	MsPacMan(dae::Scene& scene);
+	MsPacMan(const dae::Scene* scene, const glm::vec3 originalPos);
 	~MsPacMan() = default;
 
 	dae::GameObject* GetGameObject() const;
+
 private:
 	dae::GameObject* m_MainGameObject;
 };

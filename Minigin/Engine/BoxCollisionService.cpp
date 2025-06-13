@@ -42,3 +42,10 @@ std::vector<bool>& BoxCollisionService::GetIsBlockingCollisions()
 	return m_IsBlockingCollisions;
 }
 
+void BoxCollisionService::Clear()
+{
+    m_CollisionComponents.clear();
+    m_CollisionShapes.clear();
+    m_IsBlockingCollisions.clear();
+}
+

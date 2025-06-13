@@ -2,6 +2,7 @@
 #include "HealthComponent.h"
 #include "MoveComponent.h"
 #include "PointsComponent.h"
+#include "ServiceLocator.h"
 
 MoveCommand::MoveCommand(const float speed, const DesiredDirection desiredDirection, MoveComponent* moveComponent):
 m_Speed(speed),
@@ -37,4 +38,26 @@ AddPointsCommand::AddPointsCommand(float amountToAdd, PointsComponent* pointsCom
 void AddPointsCommand::Execute()
 {
     m_PointsComponent->AddToPoints(m_ValueToAdd);
+}
+
+MuteCommand::MuteCommand(): m_IsMuted(false)
+{
+}
+
+void MuteCommand::Execute()
+{
+	if (m_IsMuted)
+	{
+		ServiceLocator::GetAudioService().SetMusicVolume(100);
+        ServiceLocator::GetAudioService().SetAllAudioVolume(100);
+
+		m_IsMuted = false;
+	}
+	else
+	{
+		ServiceLocator::GetAudioService().SetMusicVolume(0);
+		ServiceLocator::GetAudioService().SetAllAudioVolume(0);
+
+		m_IsMuted = true;
+	}
 }

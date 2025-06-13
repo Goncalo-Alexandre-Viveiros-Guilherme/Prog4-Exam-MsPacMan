@@ -124,6 +124,7 @@ dae::Minigin::~Minigin()
 void dae::Minigin::Run(const std::function<void()>& load)
 {
 	load();
+	SceneManager::GetInstance().PopSceneChangeQueue();
 	Time::GetInstance().Update();
 #ifndef __EMSCRIPTEN__
 	while (!m_quit)
@@ -140,6 +141,7 @@ void dae::Minigin::Run(const std::function<void()>& load)
 
 void dae::Minigin::RunOneFrame()
 {
+	SceneManager::GetInstance().PopSceneChangeQueue();
 	SteamAPI_RunCallbacks();
 
 	Time::GetInstance().Update();
@@ -154,6 +156,8 @@ void dae::Minigin::RunOneFrame()
 	}
 	SceneManager::GetInstance().Update();
 	Renderer::GetInstance().Render();
+
+
 
 	SceneManager::GetInstance().DeleteObjects();
 	std::this_thread::sleep_for(Time::GetInstance().SleepDuration());

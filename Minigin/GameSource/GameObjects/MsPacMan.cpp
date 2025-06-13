@@ -9,23 +9,28 @@
 #include "MoveComponent.h"
 #include "InputManager.h"
 #include "PointsComponent.h"
+#include "ResetPositionComponent.h"
 #include "Scene.h"
 #include "SpriteComponent.h"
 
-MsPacMan::MsPacMan(dae::Scene& scene) : m_MainGameObject(nullptr)
+MsPacMan::MsPacMan(const dae::Scene* scene, const glm::vec3 originalPos) : m_MainGameObject(nullptr)
 {
-	auto obj = std::make_unique<dae::GameObject>("MsPacMan");
+	
 	SDL_Rect srcRect { 0,0,16,16};
-	m_MainGameObject = obj.get();
+	m_MainGameObject = scene->GetGameObjectByName("MsPacMan");
+
+	m_MainGameObject->SetLocalPosition(originalPos);
+
 	m_MainGameObject->AddComponent<SpriteComponent>("MsPacMan.png", srcRect);
 	m_MainGameObject->GetComponent<SpriteComponent>()->SetScale(2.f,2.f);
+	m_MainGameObject->AddComponent<ResetPositionComponent>(originalPos);
 
 	auto singleGridSize = glm::vec2{ 8 * 3, 8 * 3 };
 	m_MainGameObject->AddComponent<BoxColliderComponent>(false, false, 8.f * 3.0f, 8.f * 3.f);
 	m_MainGameObject->AddComponent<MoveComponent>(singleGridSize);
 	m_MainGameObject->AddComponent<HealthComponent>(3.f);
 	m_MainGameObject->AddComponent<PointsComponent>();
-	scene.Add(std::move<>(obj));
+	
 
 	auto moveComponent = m_MainGameObject->GetComponent<MoveComponent>();
 
@@ -47,3 +52,4 @@ dae::GameObject* MsPacMan::GetGameObject() const
 {
 	return m_MainGameObject;
 }
+

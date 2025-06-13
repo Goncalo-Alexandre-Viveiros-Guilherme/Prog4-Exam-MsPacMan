@@ -3,6 +3,8 @@
 #include <backends/imgui_impl_sdl2.h>
 #include <Xinput.h>
 
+#include "ServiceLocator.h"
+
 namespace dae
 {
     struct InputMappingImpl
@@ -63,6 +65,12 @@ namespace dae
         }
     };
 }
+
+void dae::InputManager::ClearMappings()
+{
+    m_InputMappings.clear();
+}
+
 bool dae::InputManager::ProcessInput()
 {
 
@@ -133,18 +141,19 @@ bool dae::InputManager::ProcessInput()
 
 dae::InputMapping::InputMapping(std::unique_ptr<Command> cmd, std::initializer_list<SDL_Scancode> keys, std::initializer_list<int> buttons, KeyState keystate)
 {
-    m_pIMapImpl = new InputMappingImpl(std::move(cmd), keys, buttons, keystate);
+    m_pIMapImpl = std::make_unique<InputMappingImpl>(std::move(cmd), keys, buttons, keystate);
 }
 
 dae::InputMapping::~InputMapping()
 {
-    delete m_pIMapImpl;
 }
+
 
 void dae::InputMapping::SetKeyState(bool isDown)
 {
    m_pIMapImpl->DoSetKeyState(isDown);
 }
+
 
 std::vector<SDL_Scancode> dae::InputMapping::GetSDLKeys()
 {

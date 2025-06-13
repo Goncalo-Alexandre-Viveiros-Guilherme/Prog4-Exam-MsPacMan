@@ -2,6 +2,8 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <queue>
+
 #include "Singleton.h"
 
 namespace dae
@@ -17,10 +19,14 @@ namespace dae
 		void Render() const;
 		void DeleteObjects() const;
 		void DeleteScenes();
+		void QueueSceneChange(Scene* scene);
+		void PopSceneChangeQueue();
 		std::shared_ptr<Scene> FindSceneByName(std::string name) const;
 	private:
 		friend class Singleton<SceneManager>;
 		SceneManager() = default;
-		std::vector<std::shared_ptr<Scene>> m_scenes;
+		std::vector<std::shared_ptr<Scene>> m_Scenes;
+		std::queue<Scene*> m_SceneChangeQueue;
+		Scene* m_CurrentScene {nullptr};
 	};
 }

@@ -302,6 +302,13 @@ void SDLAudio::SetMusicVolume(int volume)
     m_Condition.notify_one();
 }
 
+void SDLAudio::Clear()
+{
+    std::queue<std::function<void()>> newqueue;
+    m_EventQueue = newqueue;
+}
+
+
 void SDLAudio::Run()
 {
     while (m_Running)

@@ -56,6 +56,11 @@ public:
         
     }
 
+    void Clear()
+    {
+        m_Listeners.clear();
+    }
+
 private:
     struct ListenerEntry
     {

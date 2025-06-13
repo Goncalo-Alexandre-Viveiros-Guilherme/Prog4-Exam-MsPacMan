@@ -53,3 +53,13 @@ private:
 	float m_ValueToAdd;
 	PointsComponent* m_PointsComponent;
 };
+
+class MuteCommand : public Command
+{
+public:
+	MuteCommand();
+	void Execute() override;
+
+private:
+	bool m_IsMuted;
+};

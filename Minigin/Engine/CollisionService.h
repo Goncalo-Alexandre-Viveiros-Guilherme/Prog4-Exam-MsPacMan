@@ -18,5 +18,6 @@ public:
 	virtual std::vector<CollisionComponent*>& GetCollisionComponents() = 0;
 	virtual std::vector<std::unique_ptr<Shape>>& GetCollisionShapes() = 0;
 	virtual std::vector<bool>& GetIsBlockingCollisions() = 0;
+	virtual void Clear() = 0;
 };
 #endif // COLLISIONSERVICE_H

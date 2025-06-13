@@ -40,7 +40,7 @@ namespace dae
 	struct InputMapping
 	{
 	private:
-		InputMappingImpl* m_pIMapImpl;
+		std::unique_ptr<InputMappingImpl> m_pIMapImpl;
 
 	public:
 		InputMapping(std::unique_ptr<Command> cmd,
@@ -62,6 +62,7 @@ namespace dae
 	class InputManager final : public Singleton<InputManager>
 	{
 	public:
+		void ClearMappings();
 		bool ProcessInput();
 
 		template <typename CommandType, typename... Args>

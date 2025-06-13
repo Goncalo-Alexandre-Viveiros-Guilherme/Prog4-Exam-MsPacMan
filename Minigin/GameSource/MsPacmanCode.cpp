@@ -1,10 +1,8 @@
 #include "MsPacmanCode.h"
 
 #include "Achievements.h"
-#include "FPSComponent.h"
 #include "GameObject.h"
 #include "HealthDisplayComponent.h"
-#include "ImageComponent.h"
 #include "InputManager.h"
 #include "MsPacMan.h"
 #include "PointDisplayComponent.h"
@@ -25,8 +23,13 @@
 #include "SpriteComponent.h"
 #include <GhostStates.h>
 
-MsPacmanCode::MsPacmanCode()
-= default;
+MsPacmanCode::MsPacmanCode(GameModes gameMode): m_GameMode(gameMode), m_Scene(nullptr)
+{
+	dae::InputManager::GetInstance().ClearMappings();
+	ServiceLocator::GetAudioService().Clear();
+	ServiceLocator::GetCollisionService().Clear();
+	EventDispatcher::GetInstance().Clear();
+}
 
 MsPacmanCode::~MsPacmanCode()
 {
@@ -34,63 +37,42 @@ MsPacmanCode::~MsPacmanCode()
 }
 
 
-void MsPacmanCode::InitializeResources()
+void MsPacmanCode::InitializeResources(const std::string& fileName)
 {
+	m_Scene = &dae::SceneManager::GetInstance().CreateScene("MsPacman");
+
+	auto obj = std::make_unique<dae::GameObject>("MsPacMan");
+	m_Scene->Add(std::move<>(obj));
+
 	InitSpawnMap();
-	
-	auto& scene = dae::SceneManager::GetInstance().CreateScene("MsPacman");
 
-//	auto pacman = std::make_shared<dae::GameObject>("PacMan");
-//	pacman->AddComponent<ImageComponent>("PacMan.png");
-//	pacman->AddComponent<MoveComponent>();
-//	pacman->AddComponent<HealthComponent>(3.f);
-//	pacman->AddComponent<PointsComponent>();
-//	pacman->SetLocalPosition(250, 250);
-//	scene.Add(pacman);
-
-//	go = std::make_shared<dae::GameObject>("PacManLives");
-//	go->SetLocalPosition(10, 125);
-//	go->AddComponent<TextComponent>("# lives: 3", font);
-//	go->AddComponent<HealthDisplayComponent>(pacman.get());
-//	scene.Add(go);
-//
-//	go = std::make_shared<dae::GameObject>("PacmanPoints");
-//	go->SetLocalPosition(10, 150);
-//	go->AddComponent<TextComponent>("Score: 0", font);
-//	go->AddComponent<PointDisplayComponent>(pacman.get());
-//	scene.Add(go);
+	dae::InputManager::GetInstance().AddInputMapping<MuteCommand>({ SDL_SCANCODE_F2 }, {}, KeyPressed);
 
 	auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 16);
 
-	ParseCSVAndSpawn("level1.csv", scene);
+	ParseCSVAndSpawn(fileName, m_Scene);
 
 	for (const auto& ghost : m_Ghosts)
 	{
-		ghost->InitializeFSM(scene);
+		ghost->InitializeFSM(m_Scene);
 	}
-
-//	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadUp }, KeyState::Down, 0.f, -500.0f, pacman->GetComponent<MoveComponent>());
-//	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadDown }, KeyState::Down, 0.f, 500.0f, pacman->GetComponent<MoveComponent>());
-//	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadLeft }, KeyState::Down, -500.0f, 0.f, pacman->GetComponent<MoveComponent>());
-//	dae::InputManager::GetInstance().AddInputMapping<MoveCommand>({}, { GamePad_DPadRight }, KeyState::Down, 500.0f, 0.f, pacman->GetComponent<MoveComponent>());
-//	dae::InputManager::GetInstance().AddInputMapping<AddHealthCommand>({}, { GamePad_X }, Pressed, -1.f, pacman->GetComponent<HealthComponent>());
-//	dae::InputManager::GetInstance().AddInputMapping<AddPointsCommand>({}, { GamePad_A }, Pressed, 10.f, pacman->GetComponent<PointsComponent>());
-//	dae::InputManager::GetInstance().AddInputMapping<AddPointsCommand>({}, { GamePad_B }, Pressed, 100.f, pacman->GetComponent<PointsComponent>());
 
 	Achievements::GetInstance().NotifyAchievements();
 }
 
-void MsPacmanCode::LoadGameCode()
+void MsPacmanCode::LoadGameCode(const std::string& fileName)
 {
-	InitializeResources();
+	InitializeResources(fileName);
 
 	auto& soundService = ServiceLocator::GetAudioService();
 
 	soundService.AddMusic("skibidi", "Sounds/ms_start.wav");
 	soundService.PlayMusic("skibidi", 100, 1);
+
+	dae::SceneManager::GetInstance().QueueSceneChange(m_Scene);
 }
 
-void MsPacmanCode::AddWall(dae::Scene& scene, int col, int row ,int srcX, int srcY, int wallType, float rotation)
+void MsPacmanCode::AddWall(dae::Scene* scene, int col, int row ,int srcX, int srcY, int wallType, float rotation)
 {
 	auto wall = std::make_unique<dae::GameObject>("Wall");
 	SDL_Rect srcRect{ srcX,srcY,8,8 };
@@ -105,7 +87,7 @@ void MsPacmanCode::AddWall(dae::Scene& scene, int col, int row ,int srcX, int sr
 	wall->AddComponent<SpriteComponent>("WallsTransparent.png", srcRect, dstW, dstH, rotation);
 	wall->GetComponent<SpriteComponent>()->SetScale(3, 3);
 
-	scene.Add(std::move<>(wall));
+	scene->Add(std::move<>(wall));
 }
 
 void MsPacmanCode::InitSpawnMap()
@@ -113,14 +95,13 @@ void MsPacmanCode::InitSpawnMap()
 	for (int i = 0; i <= 8; ++i)
 	{
 		const int spriteOffsetX = (i * 8) + (2 * i);
-		m_SpawnMap[std::to_string(i)] = [spriteOffsetX, i,this](dae::Scene& scene, int x, int y, float rotation) {
+		m_SpawnMap[std::to_string(i)] = [spriteOffsetX, i,this](dae::Scene* scene, int x, int y, float rotation) {
 			AddWall(scene, x, y, spriteOffsetX, 0, i, rotation); };
 	}
 
-	m_SpawnMap["MPM"] = [this](dae::Scene& scene, int x, int y, float rotation) {
+	m_SpawnMap["MPM"] = [this](dae::Scene* scene, int x, int y, float rotation) {
 		rotation;
-		MsPacMan msPacMan(scene);
-		msPacMan.GetGameObject()->SetLocalPosition((x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor);
+		MsPacMan msPacMan(scene, {(x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor,0});
 
 		auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 18);
 
@@ -128,16 +109,16 @@ void MsPacmanCode::InitSpawnMap()
 		go->SetLocalPosition(200, 750);
 		go->AddComponent<TextComponent>("# lives: 3", font);
 		go->AddComponent<HealthDisplayComponent>(msPacMan.GetGameObject());
-		scene.Add(std::move<>(go));
+		scene->Add(std::move<>(go));
 
 		go = std::make_unique<dae::GameObject>("MsPacmanPoints");
 		go->SetLocalPosition(400, 750);
 		go->AddComponent<TextComponent>("Score: 0", font);
 		go->AddComponent<PointDisplayComponent>(msPacMan.GetGameObject());
-		scene.Add(std::move<>(go));
+		scene->Add(std::move<>(go));
 	};
 
-	m_SpawnMap["PD"] = [this](dae::Scene& scene, int x, int y, float rotation) {
+	m_SpawnMap["PD"] = [this](dae::Scene* scene, int x, int y, float rotation) {
 			auto pacDot = std::make_unique<dae::GameObject>("Pac-Dot");
 			SDL_Rect srcRect{ 0,0,8,8 };
 			pacDot->SetLocalPosition((x * 8.f) * m_MapScalingFactor, ((y * 8.f) * m_MapScalingFactor));
@@ -146,8 +127,8 @@ void MsPacmanCode::InitSpawnMap()
 			pacDot->AddComponent<BoxColliderComponent>(true, false, glm::vec2{2 * m_MapScalingFactor,2 * m_MapScalingFactor },
 				glm::vec2{3* m_MapScalingFactor,3 * m_MapScalingFactor }/*, true*/);
 
-			pacDot->GetComponent<BoxColliderComponent>()->AddOnEnterEvent(std::make_unique<AddPointsEvent>(10.f));
-			pacDot->GetComponent<BoxColliderComponent>()->AddOnEnterEvent(std::make_unique <DestroyGameObjectEvent>(pacDot.get()));
+			pacDot->GetComponent<BoxColliderComponent>()->AddOnEnterEvent(std::make_unique<AddPointsEvent>(10.f), scene->GetGameObjectByName("MsPacMan"));
+			pacDot->GetComponent<BoxColliderComponent>()->AddOnEnterEvent(std::make_unique <DestroyGameObjectEvent>(pacDot.get()), scene->GetGameObjectByName("MsPacMan"));
 
 			EventDispatcher::GetInstance().AddListener<DestroyGameObjectEvent>
 				(pacDot.get(), [this](const DestroyGameObjectEvent& event)
@@ -156,10 +137,10 @@ void MsPacmanCode::InitSpawnMap()
 					}
 				);
 
-			scene.Add(std::move<>(pacDot));
+			scene->Add(std::move<>(pacDot));
 		};
 
-	m_SpawnMap["PP"] = [this](dae::Scene& scene, int x, int y, float rotation) {
+	m_SpawnMap["PP"] = [this](dae::Scene* scene, int x, int y, float rotation) {
 		auto powerPellet = std::make_unique<dae::GameObject>("Power-Pellet");
 		SDL_Rect srcRect{ 0,0,8,8 };
 		powerPellet->SetLocalPosition((x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor);
@@ -167,8 +148,8 @@ void MsPacmanCode::InitSpawnMap()
 		powerPellet->GetComponent<SpriteComponent>()->SetScale(m_MapScalingFactor, m_MapScalingFactor);
 		powerPellet->AddComponent<BoxColliderComponent>(true, false, 8 * m_MapScalingFactor, 8 * m_MapScalingFactor/*, true*/);
 
-		powerPellet->GetComponent<BoxColliderComponent>()->AddOnEnterEvent(std::make_unique<AddPointsEvent>(50.f));
-		powerPellet->GetComponent<BoxColliderComponent>()->AddOnEnterEvent(std::make_unique<DestroyGameObjectEvent>(powerPellet.get()));
+		powerPellet->GetComponent<BoxColliderComponent>()->AddOnEnterEvent(std::make_unique<AddPointsEvent>(50.f), scene->GetGameObjectByName("MsPacMan"));
+		powerPellet->GetComponent<BoxColliderComponent>()->AddOnEnterEvent(std::make_unique<DestroyGameObjectEvent>(powerPellet.get()), scene->GetGameObjectByName("MsPacMan"));
 
 		EventDispatcher::GetInstance().AddListener<DestroyGameObjectEvent>
 			(powerPellet.get(), [this](const DestroyGameObjectEvent& event)
@@ -177,41 +158,49 @@ void MsPacmanCode::InitSpawnMap()
 				}
 			);
 
-		scene.Add(std::move<>(powerPellet));
+		scene->Add(std::move<>(powerPellet));
 		};
 	
-		m_SpawnMap["Blinky"] = [this](dae::Scene& scene, int x, int y, float rotation) {
+		m_SpawnMap["Blinky"] = [this](dae::Scene* scene, int x, int y, float rotation) {
 			rotation;
+			if (m_GameMode == Versus)
+			{
+				std::unique_ptr<PlayerBlinky> blinky = std::make_unique<PlayerBlinky>(scene, glm::vec3{ (x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor,0 });
+			}
+			else
+			{
+				std::unique_ptr<Blinky> blinky = std::make_unique<Blinky>(scene, glm::vec3{ (x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor,0 });
 
-			std::unique_ptr<Blinky> blinky = std::make_unique<Blinky>(scene);
-			blinky->GetGameObject()->SetLocalPosition((x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor);
+				m_Ghosts.emplace_back(std::move<>(blinky));
+			}
 
-			m_Ghosts.emplace_back(std::move<>(blinky));
 		};
 
-		m_SpawnMap["Inky"] = [this](dae::Scene& scene, int x, int y, float rotation) {
+		m_SpawnMap["Inky"] = [this](dae::Scene* scene, int x, int y, float rotation) {
 			rotation;
+			if (m_GameMode == Versus) return;
 
-			std::unique_ptr<Inky> inky = std::make_unique<Inky>(scene);
-			inky->GetGameObject()->SetLocalPosition((x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor);
+			std::unique_ptr<Inky> inky = std::make_unique<Inky>(scene, glm::vec3{ (x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor,0 });
 
 			m_Ghosts.emplace_back(std::move<>(inky));
 			};
 
-		m_SpawnMap["Pinky"] = [this](dae::Scene& scene, int x, int y, float rotation) {
+		m_SpawnMap["Pinky"] = [this](dae::Scene* scene, int x, int y, float rotation) {
 			rotation;
 
-			std::unique_ptr<Pinky> pinky = std::make_unique<Pinky>(scene);
-			pinky->GetGameObject()->SetLocalPosition((x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor);
+			if (m_GameMode == Versus) return;
+
+			std::unique_ptr<Pinky> pinky = std::make_unique<Pinky>(scene, glm::vec3{ (x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor,0 });
 
 			m_Ghosts.emplace_back(std::move<>(pinky));
 			};
 
-		m_SpawnMap["Clyde"] = [this](dae::Scene& scene, int x, int y, float rotation) {
+		m_SpawnMap["Clyde"] = [this](dae::Scene* scene, int x, int y, float rotation) {
 			rotation;
 
-			std::unique_ptr<Clyde> clyde = std::make_unique<Clyde>(scene);
-			clyde->GetGameObject()->SetLocalPosition((x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor);
+			if (m_GameMode == Versus) return;
+
+			std::unique_ptr<Clyde> clyde = std::make_unique<Clyde>(scene, glm::vec3{ (x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor,0 });
 
 			m_Ghosts.emplace_back(std::move<>(clyde));
 			};
@@ -227,7 +216,7 @@ inline void Trim(std::string& str)
 		}).base(), str.end());
 }
 
-void MsPacmanCode::ParseCSVAndSpawn(const std::string& filepath, dae::Scene& scene)
+void MsPacmanCode::ParseCSVAndSpawn(const std::string& filepath, dae::Scene* scene)
 {
 	std::string string = dae::ResourceManager::GetResourcePath(filepath);
 	std::ifstream file(string);

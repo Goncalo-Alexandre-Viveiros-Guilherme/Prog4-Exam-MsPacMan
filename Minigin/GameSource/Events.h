@@ -3,6 +3,11 @@
 
 #include "EventDispatcher.h"
 
+namespace dae
+{
+	class Scene;
+}
+
 class PointsComponent;
 class HealthComponent;
 
@@ -45,3 +50,12 @@ public:
 	dae::GameObject* m_GameObjDestroy{};
 };
 
+
+class ResetEntityPosEvent : public Event
+{
+public:
+	ResetEntityPosEvent()
+	{
+	}
+
+};

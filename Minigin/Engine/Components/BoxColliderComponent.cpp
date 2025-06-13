@@ -100,7 +100,7 @@ void BoxColliderComponent::FixedUpdate()
 			}
 			else
 			{
-				collisionComponents[idx]->OnEnterEvent();
+				collisionComponents[idx]->OnEnterEvent(GetParent());
 			}
 		}
 	}

@@ -1,4 +1,8 @@
 #pragma once
+#include "Achievements.h"
+#include "Achievements.h"
+#include "Achievements.h"
+#include "Achievements.h"
 #include "Component.h"
 #include "vec2.hpp"
 #include "vec3.hpp"
@@ -22,10 +26,12 @@ public:
 	bool CanMove(DesiredDirection direction);
 	glm::vec2 GetDirectionOffset(DesiredDirection dir) const;
 	bool IsNearGridIntersection(const glm::vec3& pos) const;
+	bool IsAtGridCenter(const glm::vec3& pos) const;
 	void SetDesiredDirection(DesiredDirection desiredDirection);
 	void SetSpeed(float speed);
 
 	DesiredDirection GetCurrentDirection() const {return m_CurrentDirection;}
+	glm::vec2 GetGridSize() { return m_GridSize; }
 
 private:
 	float m_Speed;
