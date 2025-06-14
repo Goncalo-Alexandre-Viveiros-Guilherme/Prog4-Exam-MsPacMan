@@ -45,4 +45,17 @@ namespace FSM
 		virtual void OnExit() override{}
 
 	};
+
+	class BlinkyFrightenedState : public State
+	{
+	public:
+		BlinkyFrightenedState(dae::GameObject* mainAgent) { mainAgent; }
+		~BlinkyFrightenedState() = default;
+
+		virtual void OnEnter() override {}
+		virtual void Update() override{}
+		DesiredDirection GetReverseDirection(DesiredDirection dir) { dir; }
+		virtual void OnExit() override {}
+
+	};
 }

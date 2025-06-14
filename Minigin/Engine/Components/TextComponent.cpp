@@ -16,10 +16,14 @@ TextComponent::TextComponent(dae::GameObject* parent, const std::string& text, s
 	
 }
 
+TextComponent::TextComponent(dae::GameObject* parent, const std::string& text, std::shared_ptr<dae::Font> font,
+	glm::vec2 textOffset): Component(parent), m_text(text), m_font(font), m_TextOffset(textOffset)
+{
+}
+
 void TextComponent::Update()
 {
-	const SDL_Color color = { 255,255,255,255 }; // only white text is supported now
-	const auto surf = TTF_RenderText_Blended(m_font->GetFont(), m_text.c_str(), color);
+	const auto surf = TTF_RenderText_Blended(m_font->GetFont(), m_text.c_str(), m_Color);
 	if (surf == nullptr)
 	{
 		throw std::runtime_error(std::string("Render text failed: ") + SDL_GetError());
@@ -35,7 +39,7 @@ void TextComponent::Update()
 
 void TextComponent::Render()
 {
-	dae::Renderer::GetInstance().RenderTexture(*m_textTexture, GetParent()->GetWorldPosition().x, GetParent()->GetWorldPosition().y);
+	dae::Renderer::GetInstance().RenderTexture(*m_textTexture, GetParent()->GetWorldPosition().x + m_TextOffset.x, GetParent()->GetWorldPosition().y + m_TextOffset.y);
 }
 
 void TextComponent::SetText(const std::string& text)
@@ -43,6 +47,10 @@ void TextComponent::SetText(const std::string& text)
 	m_text = text;
 }
 
+void TextComponent::SetColor(const SDL_Color& color)
+{
+	m_Color = color;
+}
 std::shared_ptr<dae::Texture2D> TextComponent::GetTex()
 {
 	return m_textTexture;

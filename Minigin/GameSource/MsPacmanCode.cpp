@@ -23,6 +23,8 @@
 #include "SpriteComponent.h"
 #include <GhostStates.h>
 
+#include "MoveComponent.h"
+
 MsPacmanCode::MsPacmanCode(GameModes gameMode): m_GameMode(gameMode), m_Scene(nullptr)
 {
 	dae::InputManager::GetInstance().ClearMappings();
@@ -39,7 +41,7 @@ MsPacmanCode::~MsPacmanCode()
 
 void MsPacmanCode::InitializeResources(const std::string& fileName)
 {
-	m_Scene = &dae::SceneManager::GetInstance().CreateScene("MsPacman");
+	m_Scene = dae::SceneManager::GetInstance().CreateScene("MsPacman");
 
 	auto obj = std::make_unique<dae::GameObject>("MsPacMan");
 	m_Scene->Add(std::move<>(obj));
@@ -105,6 +107,20 @@ void MsPacmanCode::InitSpawnMap()
 
 		auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 18);
 
+		if (m_GameMode == Normal)
+		{
+			auto& inputManager = dae::InputManager::GetInstance();
+
+			const auto moveComponent = msPacMan.GetGameObject()->GetComponent<MoveComponent>();
+
+			inputManager.AddInputMapping<MoveCommand>({}, { GamePad_DPadUp }, KeyDown, 160.f, DesiredDirection::Up, moveComponent);
+			inputManager.AddInputMapping<MoveCommand>({}, { GamePad_DPadDown }, KeyDown, 160.f, DesiredDirection::Down, moveComponent);
+			inputManager.AddInputMapping<MoveCommand>({}, { GamePad_DPadLeft }, KeyDown, 160.f, DesiredDirection::Left, moveComponent);
+			inputManager.AddInputMapping<MoveCommand>({}, { GamePad_DPadRight }, KeyDown, 160.f, DesiredDirection::Right, moveComponent);
+		}
+
+		
+
 		auto go = std::make_unique<dae::GameObject>("MsPacManLives");
 		go->SetLocalPosition(200, 750);
 		go->AddComponent<TextComponent>("# lives: 3", font);
@@ -150,6 +166,7 @@ void MsPacmanCode::InitSpawnMap()
 
 		powerPellet->GetComponent<BoxColliderComponent>()->AddOnEnterEvent(std::make_unique<AddPointsEvent>(50.f), scene->GetGameObjectByName("MsPacMan"));
 		powerPellet->GetComponent<BoxColliderComponent>()->AddOnEnterEvent(std::make_unique<DestroyGameObjectEvent>(powerPellet.get()), scene->GetGameObjectByName("MsPacMan"));
+		powerPellet->GetComponent<BoxColliderComponent>()->AddOnEnterEvent(std::make_unique<EdibleGhostsEvent>());
 
 		EventDispatcher::GetInstance().AddListener<DestroyGameObjectEvent>
 			(powerPellet.get(), [this](const DestroyGameObjectEvent& event)

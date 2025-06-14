@@ -53,9 +53,8 @@ namespace FSM {
         void Update();
         State* GetCurrentState() const { return m_CurrentState; }
 
-    private:
         void ChangeState(State* newState);
-
+    private:
         struct Transition {
             std::unique_ptr<Condition> Condition;
             State* TargetState;

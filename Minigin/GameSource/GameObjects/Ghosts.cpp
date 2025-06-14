@@ -53,11 +53,21 @@ Blinky::Blinky(dae::Scene* scene, const glm::vec3 originalPos): Ghost(scene,"Bli
 
 void Blinky::InitializeFSM(dae::Scene* scene)
 {
-	auto blinkChaseState = std::make_unique<FSM::BlinkyChaseState>(m_MainGameObject, scene->GetGameObjectByName("MsPacMan"));
+	auto chaseState = std::make_unique<FSM::BlinkyChaseState>(m_MainGameObject,
+		scene->GetGameObjectByName("MsPacMan"));
+	auto frightenedState = std::make_unique<FSM::BlinkyFrightenedState>(m_MainGameObject);
 
-	//auto blinkChaseStatePtr = blinkChaseState.get();
+	m_FSMComponent->AddTransition(
+		m_NullState,
+		std::move(chaseState),
+		std::make_unique<FSM::AlwaysTrueCond>()
+	);
 
-	m_FSMComponent->AddTransition(m_NullState, std::move<>(blinkChaseState), std::make_unique<FSM::AlwaysTrueCond>());
+//	m_FSMComponent->AddEventTransition(
+//		m_FSMComponent->GetCurrentState(), 
+//		std::move(frightenedState),        
+//		m_MainGameObject                   
+//	);
 }
 
 PlayerBlinky::PlayerBlinky(dae::Scene* scene, const glm::vec3 originalPos)

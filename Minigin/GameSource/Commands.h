@@ -1,4 +1,5 @@
 #pragma once
+#include "MenuController.h"
 
 
 enum DesiredDirection : int;
@@ -62,4 +63,32 @@ public:
 
 private:
 	bool m_IsMuted;
+};
+
+
+class MenuMoveUpCommand : public Command
+{
+public:
+	MenuMoveUpCommand(MenuController* menu) : m_Menu(menu) {}
+	void Execute() override { m_Menu->MoveUp(); }
+private:
+	MenuController* m_Menu;
+};
+
+class MenuMoveDownCommand : public Command
+{
+public:
+	MenuMoveDownCommand(MenuController* menu) : m_Menu(menu) {}
+	void Execute() override { m_Menu->MoveDown(); }
+private:
+	MenuController* m_Menu;
+};
+
+class MenuSelectCommand : public Command
+{
+public:
+	MenuSelectCommand(MenuController* menu) : m_Menu(menu) {}
+	void Execute() override { m_Menu->SelectCurrent(); }
+private:
+	MenuController* m_Menu;
 };

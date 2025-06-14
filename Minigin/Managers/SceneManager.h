@@ -12,7 +12,7 @@ namespace dae
 	class SceneManager final : public Singleton<SceneManager>
 	{
 	public:
-		Scene& CreateScene(const std::string& name);
+		dae::Scene* CreateScene(const std::string& name);
 
 		void Update() const;
 		void FixedUpdate() const;

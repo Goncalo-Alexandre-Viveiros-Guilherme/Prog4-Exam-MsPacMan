@@ -57,9 +57,9 @@ std::shared_ptr<dae::Scene> dae::SceneManager::FindSceneByName(std::string name)
 	throw std::runtime_error("No scene with that name found");
 }
 
-dae::Scene& dae::SceneManager::CreateScene(const std::string& name)
+dae::Scene* dae::SceneManager::CreateScene(const std::string& name)
 {
 	const auto& scene = std::shared_ptr<Scene>(new Scene(name));
 	m_Scenes.push_back(scene);
-	return *scene;
+	return scene.get();
 }

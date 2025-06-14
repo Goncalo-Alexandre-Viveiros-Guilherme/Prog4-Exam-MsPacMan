@@ -41,10 +41,6 @@ MsPacMan::MsPacMan(const dae::Scene* scene, const glm::vec3 originalPos) : m_Mai
 	inputManager.AddInputMapping<MoveCommand>({ SDL_SCANCODE_S }, {}, KeyDown, 160.f, DesiredDirection::Down, moveComponent);
 	inputManager.AddInputMapping<MoveCommand>({ SDL_SCANCODE_A }, {}, KeyDown, 160.f, DesiredDirection::Left, moveComponent);
 	inputManager.AddInputMapping<MoveCommand>({ SDL_SCANCODE_D }, {}, KeyDown, 160.f, DesiredDirection::Right, moveComponent);
-
-	inputManager.AddInputMapping<AddHealthCommand>({ SDL_SCANCODE_C }, {}, KeyPressed, -1.f,	m_MainGameObject->GetComponent<HealthComponent>());
-	inputManager.AddInputMapping<AddPointsCommand>({ SDL_SCANCODE_Z }, {}, KeyPressed, 10.f,	m_MainGameObject->GetComponent<PointsComponent>());
-	inputManager.AddInputMapping<AddPointsCommand>({ SDL_SCANCODE_X }, {}, KeyPressed, 100.f,	m_MainGameObject->GetComponent<PointsComponent>());
 }
 
 

@@ -20,7 +20,6 @@ void MoveComponent::Update()
     auto* parent = GetParent();
     auto pos = parent->GetWorldPosition();
 
-    // Always align to grid when changing directions
     if (m_DesiredDirection != m_CurrentDirection && CanMove(m_DesiredDirection)) {
         pos.x = std::round(pos.x / m_GridSize.x) * m_GridSize.x;
         pos.y = std::round(pos.y / m_GridSize.y) * m_GridSize.y;
@@ -44,15 +43,14 @@ void MoveComponent::Update()
         parent->SetLocalPosition(newPos.x, newPos.y);
     }
     else if (m_CurrentDirection != DesiredDirection::None) {
-        // Only stop if we hit an obstacle
         m_CurrentDirection = DesiredDirection::None;
-        parent->SetLocalPosition(pos.x, pos.y);  // Revert to previous position
+        parent->SetLocalPosition(pos.x, pos.y);
     }
 }
 
 // Add this method
 bool MoveComponent::IsAtGridCenter(const glm::vec3& pos) const {
-    const float threshold = 1.0f;  // pixels from center
+    const float threshold = 2.0f;
     glm::vec2 gridCenter = {
         std::round(pos.x / m_GridSize.x) * m_GridSize.x,
         std::round(pos.y / m_GridSize.y) * m_GridSize.y
@@ -65,7 +63,6 @@ bool MoveComponent::CanMove(DesiredDirection direction)
     if (direction == DesiredDirection::None)
         return false;
 
-    // Get current position and snap to grid for accurate check
     glm::vec3 currentPos = GetParent()->GetWorldPosition();
     glm::vec3 snappedPos = {
         std::round(currentPos.x / m_GridSize.x) * m_GridSize.x,
@@ -73,7 +70,6 @@ bool MoveComponent::CanMove(DesiredDirection direction)
         0
     };
 
-    // Calculate check position with a small tolerance
     const float tolerance = m_GridSize.x * 0.1f;
     glm::vec2 offset = GetDirectionOffset(direction);
     glm::vec3 checkPos = snappedPos + glm::vec3(offset * (m_GridSize - tolerance), 0);

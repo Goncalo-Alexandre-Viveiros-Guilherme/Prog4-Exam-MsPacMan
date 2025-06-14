@@ -2,6 +2,7 @@
 #include <map>
 
 #include "EventDispatcher.h"
+#include "FSM.h"
 
 namespace dae
 {
@@ -58,4 +59,36 @@ public:
 	{
 	}
 
+};
+
+class EdibleGhostsEvent : public Event
+{
+public:
+	EdibleGhostsEvent()
+	{
+	}
+
+};
+
+template <typename EventType>
+class EventCondition : public FSM::Condition {
+public:
+    EventCondition(dae::GameObject* listener) : m_Listener(listener) {
+        EventDispatcher::GetInstance().AddListener<EventType>(
+            m_Listener,
+            [this](const EventType&) { m_Triggered = true; }
+        );
+    }
+
+    bool Evaluate() const override {
+        if (m_Triggered) {
+            m_Triggered = false;
+            return true;
+        }
+        return false;
+    }
+
+private:
+    dae::GameObject* m_Listener;
+    mutable bool m_Triggered = false;
 };

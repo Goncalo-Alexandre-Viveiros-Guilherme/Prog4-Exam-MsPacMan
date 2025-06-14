@@ -27,7 +27,7 @@ add_executable(${TARGET_NAME} ${TARGET_PARAM}
     Minigin/GameSource/Components/MoveComponent.cpp
     Minigin/GameSource/Commands.cpp 
     Minigin/GameSource/GameObjects/Ghosts.cpp 
-    Minigin/GameSource/States/GhostStates.cpp "Minigin/GameSource/Components/ResetPositionComponent.h")
+    Minigin/GameSource/States/GhostStates.cpp "Minigin/GameSource/Components/ResetPositionComponent.h" "Minigin/GameSource/MenuController.cpp")
 
 add_library(miniginLib STATIC 
    Minigin/Engine/GameObject.cpp
