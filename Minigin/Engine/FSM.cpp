@@ -18,6 +18,16 @@ namespace FSM {
         );
     }
 
+    void FiniteStateMachine::AddTransition(State* fromState,
+        State* toState,
+        std::unique_ptr<Condition> condition) {
+        State* rawToState = toState;
+
+        m_Transitions[fromState].push_back(
+            { std::move(condition), rawToState }
+        );
+    }
+
     void FiniteStateMachine::Update() {
         if (!m_CurrentState) return;
 

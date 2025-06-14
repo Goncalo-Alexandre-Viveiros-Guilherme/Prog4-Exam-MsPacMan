@@ -2,8 +2,10 @@
 
 #include <stdexcept>
 
+#include "EventDispatcher.h"
 #include "InputManager.h"
 #include "Scene.h"
+#include "ServiceLocator.h"
 
 void dae::SceneManager::Update() const
 {
@@ -44,17 +46,25 @@ void dae::SceneManager::PopSceneChangeQueue()
 	}
 }
 
-std::shared_ptr<dae::Scene> dae::SceneManager::FindSceneByName(std::string name) const
+dae::Scene* dae::SceneManager::FindSceneByName(const std::string& name) const
 {
 	for (const auto& scene:m_Scenes)
 	{
 		if (scene->GetName() == name)
 		{
-			return scene;
+			return scene.get();
 		}
 	}
 
 	throw std::runtime_error("No scene with that name found");
+}
+
+void dae::SceneManager::PrepManagers()
+{
+	dae::InputManager::GetInstance().ClearMappings();
+	ServiceLocator::GetAudioService().Clear();
+	ServiceLocator::GetCollisionService().Clear();
+	EventDispatcher::GetInstance().Clear();
 }
 
 dae::Scene* dae::SceneManager::CreateScene(const std::string& name)

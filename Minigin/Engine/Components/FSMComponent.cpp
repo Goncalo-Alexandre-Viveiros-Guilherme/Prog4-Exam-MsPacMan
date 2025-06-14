@@ -16,3 +16,9 @@ void FSMComponent::AddTransition(FSM::State* fromState, std::unique_ptr<FSM::Sta
 {
 	m_FSM->AddTransition(fromState, std::move<>(toState), std::move<>(condition));
 }
+
+void FSMComponent::AddTransition(FSM::State* fromState, FSM::State* toState,
+	std::unique_ptr<FSM::Condition> condition) const
+{
+	m_FSM->AddTransition(fromState, toState, std::move<>(condition));
+}

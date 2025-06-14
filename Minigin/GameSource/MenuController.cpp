@@ -64,13 +64,13 @@ private:
 class MoveUpCondition : public FSM::Condition
 {
 public:
-    bool Evaluate() const override { return false; } 
+    bool Evaluate() override { return false; }
 };
 
 class MoveDownCondition : public FSM::Condition
 {
 public:
-    bool Evaluate() const override { return false; } 
+    bool Evaluate() override { return false; } 
 };
 
 // MenuController implementation
@@ -83,15 +83,19 @@ MenuController::MenuController(dae::GameObject* parent,
     , m_VersusText(versusText)
     , m_CoopText(coopText)
 {
-    // Create states
+
     auto normalState = std::make_unique<NormalState>(this);
     auto versusState = std::make_unique<VersusState>(this);
     auto coopState = std::make_unique<CoopState>(this);
 
-    // Create FSM with initial state
+
     m_FSM = new FSM::FiniteStateMachine(std::move(normalState));
 
-    // Add transitions
+    m_VersusState = new VersusState(this);
+    m_NormalState = new NormalState(this);
+    m_CoopState = new CoopState(this);
+
+
     m_FSM->AddTransition(
         m_FSM->GetCurrentState(),
         std::move(versusState),
@@ -105,6 +109,14 @@ MenuController::MenuController(dae::GameObject* parent,
     );
 }
 
+MenuController::~MenuController()
+{
+    delete m_FSM;
+    delete m_CoopState;
+    delete m_VersusState;
+    delete m_NormalState;
+}
+
 void MenuController::Update()
 {
     m_FSM->Update();
@@ -112,42 +124,36 @@ void MenuController::Update()
 
 void MenuController::MoveUp()
 {
-    // Manually trigger state transitions
     if (dynamic_cast<CoopState*>(m_FSM->GetCurrentState())) {
-        m_FSM->ChangeState(new VersusState(this));
+        m_FSM->ChangeState(m_VersusState);
     }
     else if (dynamic_cast<VersusState*>(m_FSM->GetCurrentState())) {
-        m_FSM->ChangeState(new NormalState(this));
+        m_FSM->ChangeState(m_NormalState);
     }
 }
 
 void MenuController::MoveDown()
 {
-    // Manually trigger state transitions
     if (dynamic_cast<NormalState*>(m_FSM->GetCurrentState())) {
-        m_FSM->ChangeState(new VersusState(this));
+        m_FSM->ChangeState(m_VersusState);
     }
     else if (dynamic_cast<VersusState*>(m_FSM->GetCurrentState())) {
-        m_FSM->ChangeState(new CoopState(this));
+        m_FSM->ChangeState(m_CoopState);
     }
 }
 
 void MenuController::SelectCurrent()
 {
-    // Handle selection based on current state
-    if (dynamic_cast<NormalState*>(m_FSM->GetCurrentState())) 
-    {
-        MsPacmanCode msPacmanCode{ GameModes::Normal, };
-		msPacmanCode.LoadGameCode("level1.csv");
-    }
-    else if (dynamic_cast<VersusState*>(m_FSM->GetCurrentState())) 
-    {
-        MsPacmanCode msPacmanCode{ GameModes::Versus, };
+    if (dynamic_cast<NormalState*>(m_FSM->GetCurrentState())) {
+        MsPacmanCode msPacmanCode{ GameModes::Normal };
         msPacmanCode.LoadGameCode("level1.csv");
     }
-    else if (dynamic_cast<CoopState*>(m_FSM->GetCurrentState())) 
-    {
-        MsPacmanCode msPacmanCode{ GameModes::CoOp, };
+    else if (dynamic_cast<VersusState*>(m_FSM->GetCurrentState())) {
+        MsPacmanCode msPacmanCode{ GameModes::Versus };
+        msPacmanCode.LoadGameCode("level1.csv");
+    }
+    else if (dynamic_cast<CoopState*>(m_FSM->GetCurrentState())) {
+        MsPacmanCode msPacmanCode{ GameModes::CoOp };
         msPacmanCode.LoadGameCode("level1.csv");
     }
 }

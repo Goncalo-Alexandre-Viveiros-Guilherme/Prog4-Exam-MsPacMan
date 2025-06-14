@@ -21,7 +21,8 @@ namespace dae
 		void DeleteScenes();
 		void QueueSceneChange(Scene* scene);
 		void PopSceneChangeQueue();
-		std::shared_ptr<Scene> FindSceneByName(std::string name) const;
+		Scene* FindSceneByName(const std::string& name) const;
+		void PrepManagers();
 	private:
 		friend class Singleton<SceneManager>;
 		SceneManager() = default;

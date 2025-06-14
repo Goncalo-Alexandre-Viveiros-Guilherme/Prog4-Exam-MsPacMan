@@ -10,7 +10,7 @@ public:
         TextComponent* normalText,
         TextComponent* versusText,
         TextComponent* coopText);
-    ~MenuController() = default;
+    ~MenuController();
 
     void Update() override;
     void SelectCurrent();
@@ -22,6 +22,9 @@ private:
     class VersusState;
     class CoopState;
 
+    VersusState* m_VersusState;
+    NormalState* m_NormalState;
+    CoopState* m_CoopState;
     FSM::FiniteStateMachine* m_FSM;
     TextComponent* m_NormalText;
     TextComponent* m_VersusText;

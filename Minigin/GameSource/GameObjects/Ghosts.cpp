@@ -21,7 +21,7 @@ Ghost::Ghost(dae::Scene* scene, const std::string& ghostName, const glm::vec3 or
 	m_MainGameObject = obj.get();
 
 	m_MainGameObject->SetLocalPosition(originalPos);
-	m_MainGameObject->AddComponent<ResetPositionComponent>(originalPos);
+	m_MainGameObject->AddComponent<ResetPositionComponent>(originalPos,true);
 
 	scene->Add(std::move<>(obj));
 	auto singleGridSize = glm::vec2{ 8 * 3, 8 * 3 };
@@ -29,7 +29,7 @@ Ghost::Ghost(dae::Scene* scene, const std::string& ghostName, const glm::vec3 or
 	auto boxColliderComp = m_MainGameObject->AddComponent<BoxColliderComponent>(false, false, 8.f * 3.0f, 8.f * 3.f);
 	m_MainGameObject->AddComponent<MoveComponent>(singleGridSize)->SetSpeed(160);
 
-	boxColliderComp->AddOnEnterEvent(std::make_unique<ResetEntityPosEvent>());
+	boxColliderComp->AddOnEnterEvent(std::make_unique<ResetEntityPosEvent>(m_MainGameObject),scene->GetGameObjectByName("MsPacMan"));
 
 	auto initialState = std::make_unique<FSM::NullState>();
 
@@ -51,11 +51,13 @@ Blinky::Blinky(dae::Scene* scene, const glm::vec3 originalPos): Ghost(scene,"Bli
 	m_MainGameObject->GetComponent<SpriteComponent>()->SetScale(2.f, 2.f);
 }
 
-void Blinky::InitializeFSM(dae::Scene* scene)
+void Blinky::InitializeFSM(dae::Scene* scene, const std::vector<glm::vec2>& forbiddenCells)
 {
 	auto chaseState = std::make_unique<FSM::BlinkyChaseState>(m_MainGameObject,
-		scene->GetGameObjectByName("MsPacMan"));
-	auto frightenedState = std::make_unique<FSM::BlinkyFrightenedState>(m_MainGameObject);
+		scene->GetGameObjectByName("MsPacMan"), forbiddenCells);
+	auto frightenedState = std::make_unique<FSM::BlinkyFrightenedState>(m_MainGameObject,glm::vec2{});
+
+	auto* chaseRaw = chaseState.get();
 
 	m_FSMComponent->AddTransition(
 		m_NullState,
@@ -63,11 +65,12 @@ void Blinky::InitializeFSM(dae::Scene* scene)
 		std::make_unique<FSM::AlwaysTrueCond>()
 	);
 
-//	m_FSMComponent->AddEventTransition(
-//		m_FSMComponent->GetCurrentState(), 
-//		std::move(frightenedState),        
-//		m_MainGameObject                   
-//	);
+	m_FSMComponent->AddTransition(
+		chaseRaw,
+		std::move(frightenedState),
+		std::make_unique<FSM::HasPowerPelletBeenEaten>()
+	);
+
 }
 
 PlayerBlinky::PlayerBlinky(dae::Scene* scene, const glm::vec3 originalPos)
@@ -77,7 +80,7 @@ PlayerBlinky::PlayerBlinky(dae::Scene* scene, const glm::vec3 originalPos)
 	m_MainGameObject = obj.get();
 
 	m_MainGameObject->SetLocalPosition(originalPos);
-	m_MainGameObject->AddComponent<ResetPositionComponent>(originalPos);
+	m_MainGameObject->AddComponent<ResetPositionComponent>(originalPos, true);
 
 	scene->Add(std::move<>(obj));
 	auto singleGridSize = glm::vec2{ 8 * 3, 8 * 3 };
@@ -86,7 +89,7 @@ PlayerBlinky::PlayerBlinky(dae::Scene* scene, const glm::vec3 originalPos)
 	auto moveComponent = m_MainGameObject->AddComponent<MoveComponent>(singleGridSize);
 	moveComponent->SetSpeed(160);
 
-	boxColliderComp->AddOnEnterEvent(std::make_unique<ResetEntityPosEvent>());
+	boxColliderComp->AddOnEnterEvent(std::make_unique<ResetEntityPosEvent>(m_MainGameObject), scene->GetGameObjectByName("MsPacMan"));
 
 	SDL_Rect srcRect{ 0,0,16,16 };
 	m_MainGameObject->AddComponent<SpriteComponent>("Blinky.png", srcRect);
@@ -109,9 +112,33 @@ Pinky::Pinky(dae::Scene* scene, const glm::vec3 originalPos): Ghost(scene,"Pinky
 	m_MainGameObject->GetComponent<SpriteComponent>()->SetScale(2.f, 2.f);
 }
 
-void Pinky::InitializeFSM(dae::Scene* scene)
+void Pinky::InitializeFSM(dae::Scene* scene, const std::vector<glm::vec2>& forbiddenCells)
 {
-	scene;
+	auto chaseState = std::make_unique<FSM::BlinkyChaseState>(m_MainGameObject,
+		scene->GetGameObjectByName("MsPacMan"), forbiddenCells);
+	auto frightenedState = std::make_unique<FSM::BlinkyFrightenedState>(m_MainGameObject, glm::vec2{ 29 * (8* 3),0 });
+
+	auto* chaseRaw = chaseState.get();
+	auto* frightenedRaw = frightenedState.get();
+
+	m_FSMComponent->AddTransition(
+		m_NullState,
+		std::move(chaseState),
+		std::make_unique<FSM::AlwaysTrueCond>()
+	);
+
+	m_FSMComponent->AddTransition(
+		chaseRaw,
+		std::move(frightenedState),
+		std::make_unique<FSM::HasPowerPelletBeenEaten>()
+	);
+
+	m_FSMComponent->AddTransition(
+		frightenedRaw,
+		chaseRaw,
+		std::make_unique<FSM::TimerIsWeak>()
+	);
+
 }
 
 Inky::Inky(dae::Scene* scene, const glm::vec3 originalPos) : Ghost(scene, "Inky",originalPos)
@@ -121,9 +148,33 @@ Inky::Inky(dae::Scene* scene, const glm::vec3 originalPos) : Ghost(scene, "Inky"
 	m_MainGameObject->GetComponent<SpriteComponent>()->SetScale(2.f, 2.f);
 }
 
-void Inky::InitializeFSM(dae::Scene* scene)
+void Inky::InitializeFSM(dae::Scene* scene, const std::vector<glm::vec2>& forbiddenCells)
 {
-	scene;
+	auto chaseState = std::make_unique<FSM::BlinkyChaseState>(m_MainGameObject,
+		scene->GetGameObjectByName("MsPacMan"), forbiddenCells);
+	auto frightenedState = std::make_unique<FSM::BlinkyFrightenedState>(m_MainGameObject, glm::vec2{ 29 * (8 * 3),31 * (8*3)});
+
+	auto* chaseRaw = chaseState.get();
+	auto* frightenedRaw = frightenedState.get();
+
+	m_FSMComponent->AddTransition(
+		m_NullState,
+		std::move(chaseState),
+		std::make_unique<FSM::AlwaysTrueCond>()
+	);
+
+	m_FSMComponent->AddTransition(
+		chaseRaw,
+		std::move(frightenedState),
+		std::make_unique<FSM::HasPowerPelletBeenEaten>()
+	);
+
+	m_FSMComponent->AddTransition(
+		frightenedRaw,
+		chaseRaw,
+		std::make_unique<FSM::TimerIsWeak>()
+	);
+
 }
 
 Clyde::Clyde(dae::Scene* scene, const glm::vec3 originalPos) : Ghost(scene, "Clyde",originalPos)
@@ -133,7 +184,31 @@ Clyde::Clyde(dae::Scene* scene, const glm::vec3 originalPos) : Ghost(scene, "Cly
 	m_MainGameObject->GetComponent<SpriteComponent>()->SetScale(2.f, 2.f);
 }
 
-void Clyde::InitializeFSM(dae::Scene* scene)
+void Clyde::InitializeFSM(dae::Scene* scene, const std::vector<glm::vec2>& forbiddenCells)
 {
-	scene;
+	auto chaseState = std::make_unique<FSM::BlinkyChaseState>(m_MainGameObject,
+		scene->GetGameObjectByName("MsPacMan"), forbiddenCells);
+	auto frightenedState = std::make_unique<FSM::BlinkyFrightenedState>(m_MainGameObject, glm::vec2{0,31 * (8 * 3) });
+
+	auto* chaseRaw = chaseState.get();
+	auto* frightenedRaw = frightenedState.get();
+
+	m_FSMComponent->AddTransition(
+		m_NullState,
+		std::move(chaseState),
+		std::make_unique<FSM::AlwaysTrueCond>()
+	);
+
+	m_FSMComponent->AddTransition(
+		chaseRaw,
+		std::move(frightenedState),
+		std::make_unique<FSM::HasPowerPelletBeenEaten>()
+	);
+
+	m_FSMComponent->AddTransition(
+		frightenedRaw,
+		chaseRaw,
+		std::make_unique<FSM::TimerIsWeak>()
+	);
+
 }

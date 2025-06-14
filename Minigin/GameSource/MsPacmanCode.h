@@ -3,6 +3,7 @@
 #include <unordered_map>
 
 #include "Scene.h"
+#include "vec2.hpp"
 
 class Ghost;
 
@@ -25,6 +26,8 @@ public:
 	void InitSpawnMap();
 	void ParseCSVAndSpawn(const std::string& filepath, dae::Scene* scene);
 
+	static void MainMenuScene();
+
 private:
 	//dae::Scene* m_pScene;
 	using SpawnFunc = std::function<void(dae::Scene* scene, int gridX, int gridY, float rotation)>;
@@ -33,4 +36,5 @@ private:
 	GameModes m_GameMode;
 	dae::Scene* m_Scene;
 	std::vector<std::unique_ptr<Ghost>> m_Ghosts;
+	std::vector <glm::vec2> m_ForbiddenCells;
 };

@@ -27,10 +27,7 @@
 
 MsPacmanCode::MsPacmanCode(GameModes gameMode): m_GameMode(gameMode), m_Scene(nullptr)
 {
-	dae::InputManager::GetInstance().ClearMappings();
-	ServiceLocator::GetAudioService().Clear();
-	ServiceLocator::GetCollisionService().Clear();
-	EventDispatcher::GetInstance().Clear();
+	dae::SceneManager::GetInstance().PrepManagers();
 }
 
 MsPacmanCode::~MsPacmanCode()
@@ -56,7 +53,7 @@ void MsPacmanCode::InitializeResources(const std::string& fileName)
 
 	for (const auto& ghost : m_Ghosts)
 	{
-		ghost->InitializeFSM(m_Scene);
+		ghost->InitializeFSM(m_Scene,m_ForbiddenCells);
 	}
 
 	Achievements::GetInstance().NotifyAchievements();
@@ -82,9 +79,17 @@ void MsPacmanCode::AddWall(dae::Scene* scene, int col, int row ,int srcX, int sr
 	int dstW{ 8 };
 	wall->SetLocalPosition((col * 8.f) * m_MapScalingFactor, (row * 8.f) * m_MapScalingFactor);
 
-	wallType;
+
 	glm::vec2 spriteSize{ 8,8 };
-	wall->AddComponent<BoxColliderComponent>(true, true, 8.f * m_MapScalingFactor, 8.f * m_MapScalingFactor);
+	if (wallType == 8)
+	{
+		wall->AddComponent<BoxColliderComponent>(true, false, 8.f * m_MapScalingFactor, 8.f * m_MapScalingFactor);
+	}
+	else
+	{
+		wall->AddComponent<BoxColliderComponent>(true, true, 8.f * m_MapScalingFactor, 8.f * m_MapScalingFactor);
+	}
+	
 
 	wall->AddComponent<SpriteComponent>("WallsTransparent.png", srcRect, dstW, dstH, rotation);
 	wall->GetComponent<SpriteComponent>()->SetScale(3, 3);
@@ -160,13 +165,14 @@ void MsPacmanCode::InitSpawnMap()
 		auto powerPellet = std::make_unique<dae::GameObject>("Power-Pellet");
 		SDL_Rect srcRect{ 0,0,8,8 };
 		powerPellet->SetLocalPosition((x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor);
-		powerPellet->AddComponent<SpriteComponent>("Power-Pellet.png", srcRect, rotation);
-		powerPellet->GetComponent<SpriteComponent>()->SetScale(m_MapScalingFactor, m_MapScalingFactor);
-		powerPellet->AddComponent<BoxColliderComponent>(true, false, 8 * m_MapScalingFactor, 8 * m_MapScalingFactor/*, true*/);
+		powerPellet->AddComponent<SpriteComponent>("Power-Pellet.png", srcRect, rotation)->SetScale(m_MapScalingFactor, m_MapScalingFactor);
+		auto boxColliderComponent = powerPellet->AddComponent<BoxColliderComponent>(true, false, 8 * m_MapScalingFactor, 8 * m_MapScalingFactor/*, true*/);
 
-		powerPellet->GetComponent<BoxColliderComponent>()->AddOnEnterEvent(std::make_unique<AddPointsEvent>(50.f), scene->GetGameObjectByName("MsPacMan"));
-		powerPellet->GetComponent<BoxColliderComponent>()->AddOnEnterEvent(std::make_unique<DestroyGameObjectEvent>(powerPellet.get()), scene->GetGameObjectByName("MsPacMan"));
-		powerPellet->GetComponent<BoxColliderComponent>()->AddOnEnterEvent(std::make_unique<EdibleGhostsEvent>());
+		auto msPacMan = scene->GetGameObjectByName("MsPacMan");
+
+		boxColliderComponent->AddOnEnterEvent(std::make_unique<AddPointsEvent>(50.f), msPacMan);
+		boxColliderComponent->AddOnEnterEvent(std::make_unique<DestroyGameObjectEvent>(powerPellet.get()), msPacMan);
+		boxColliderComponent->AddOnEnterEvent(std::make_unique<EdibleGhostsEvent>(), msPacMan);
 
 		EventDispatcher::GetInstance().AddListener<DestroyGameObjectEvent>
 			(powerPellet.get(), [this](const DestroyGameObjectEvent& event)
@@ -182,7 +188,7 @@ void MsPacmanCode::InitSpawnMap()
 			rotation;
 			if (m_GameMode == Versus)
 			{
-				std::unique_ptr<PlayerBlinky> blinky = std::make_unique<PlayerBlinky>(scene, glm::vec3{ (x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor,0 });
+				std::unique_ptr<PlayerBlinky> blinky = std::make_unique<PlayerBlinky>(scene, glm::vec3{ (x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor,0});
 			}
 			else
 			{
@@ -191,6 +197,7 @@ void MsPacmanCode::InitSpawnMap()
 				m_Ghosts.emplace_back(std::move<>(blinky));
 			}
 
+			m_ForbiddenCells.emplace_back(glm::vec2{ (x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor });
 		};
 
 		m_SpawnMap["Inky"] = [this](dae::Scene* scene, int x, int y, float rotation) {
@@ -200,6 +207,8 @@ void MsPacmanCode::InitSpawnMap()
 			std::unique_ptr<Inky> inky = std::make_unique<Inky>(scene, glm::vec3{ (x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor,0 });
 
 			m_Ghosts.emplace_back(std::move<>(inky));
+
+			m_ForbiddenCells.emplace_back(glm::vec2{ (x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor });
 			};
 
 		m_SpawnMap["Pinky"] = [this](dae::Scene* scene, int x, int y, float rotation) {
@@ -210,6 +219,8 @@ void MsPacmanCode::InitSpawnMap()
 			std::unique_ptr<Pinky> pinky = std::make_unique<Pinky>(scene, glm::vec3{ (x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor,0 });
 
 			m_Ghosts.emplace_back(std::move<>(pinky));
+
+			m_ForbiddenCells.emplace_back(glm::vec2{ (x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor });
 			};
 
 		m_SpawnMap["Clyde"] = [this](dae::Scene* scene, int x, int y, float rotation) {
@@ -220,6 +231,15 @@ void MsPacmanCode::InitSpawnMap()
 			std::unique_ptr<Clyde> clyde = std::make_unique<Clyde>(scene, glm::vec3{ (x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor,0 });
 
 			m_Ghosts.emplace_back(std::move<>(clyde));
+
+			m_ForbiddenCells.emplace_back(glm::vec2{ (x * 8.f) * m_MapScalingFactor, (y * 8.f) * m_MapScalingFactor });
+			};
+
+		m_SpawnMap["FA"] = [this](dae::Scene* scene, int x, int y, float rotation) {
+			rotation;
+			scene;
+
+			m_ForbiddenCells.emplace_back(x, y);
 			};
 }
 
@@ -307,4 +327,49 @@ void MsPacmanCode::ParseCSVAndSpawn(const std::string& filepath, dae::Scene* sce
 		}
 		++row;
 	}
+}
+
+void MsPacmanCode::MainMenuScene()
+{
+	dae::Scene* scene = dae::SceneManager::GetInstance().CreateScene("MainMenuScene");
+
+	auto go = std::make_unique<dae::GameObject>("Menu");
+
+	auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 32);
+
+	// Create text components
+	auto normalText = go->AddComponent<TextComponent>("Normal", font);
+	auto versusText = go->AddComponent<TextComponent>("Versus", font, glm::vec2(0, 100));
+	auto coopText = go->AddComponent<TextComponent>("Co-op", font, glm::vec2(0, 200));
+
+	// Create menu controller
+	auto menuController = go->AddComponent<MenuController>(normalText, versusText, coopText);
+
+	go->SetLocalPosition((672 / 2) - 50, 794 / 2);
+	scene->Add(std::move(go));
+
+	// Add input commands
+	auto& input = dae::InputManager::GetInstance();
+	input.AddInputMapping<MenuMoveUpCommand>(
+		{ SDL_SCANCODE_UP, SDL_SCANCODE_W },
+		{ GamePad_DPadUp },
+		KeyState::KeyPressed,
+		menuController
+	);
+
+	input.AddInputMapping<MenuMoveDownCommand>(
+		{ SDL_SCANCODE_DOWN, SDL_SCANCODE_S },
+		{ GamePad_DPadDown },
+		KeyState::KeyPressed,
+		menuController
+	);
+
+	input.AddInputMapping<MenuSelectCommand>(
+		{ SDL_SCANCODE_RETURN, SDL_SCANCODE_SPACE },
+		{ GamePad_A },
+		KeyState::KeyPressed,
+		menuController
+	);
+
+	dae::SceneManager::GetInstance().QueueSceneChange(scene);
 }

@@ -34,6 +34,11 @@ void SpriteComponent::SetScale(float scaleX, float scaleY)
 	m_SpriteScaleY = scaleY;
 }
 
+void SpriteComponent::SetTexture(const std::string& filename)
+{
+	m_Texture = dae::ResourceManager::GetInstance().LoadTexture(filename);
+}
+
 void SpriteComponent::Render()
 {
 	if (!m_Texture) return;

@@ -20,6 +20,8 @@ public:
 
 	void SetScale(float scaleX,float scaleY);
 
+	void SetTexture(const std::string& filename);
+
 	void Render() override;
 
 private:

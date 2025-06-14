@@ -9,6 +9,11 @@ namespace FSM {
     class State {
     public:
         virtual ~State() = default;
+
+        template<typename T>
+        bool is() const {
+            return dynamic_cast<const T*>(this) != nullptr;
+        }
         virtual void OnEnter() = 0;
         virtual void Update() = 0;
         virtual void OnExit() = 0;
@@ -25,13 +30,13 @@ namespace FSM {
     class Condition {
     public:
         virtual ~Condition() = default;
-        virtual bool Evaluate() const = 0;
+        virtual bool Evaluate() = 0;
     };
 
     class AlwaysTrueCond : public Condition {
     public:
         virtual ~AlwaysTrueCond() = default;
-        bool Evaluate() const override { return true; }  // Added const and override
+        bool Evaluate() override { return true; }  // Added const and override
     };
 
     class AlwaysFalseCond : public Condition {
@@ -49,6 +54,7 @@ namespace FSM {
         void AddTransition(State* fromState,
             std::unique_ptr<State> toState,
             std::unique_ptr<Condition> condition);
+        void AddTransition(State* fromState, State* toState, std::unique_ptr<Condition> condition);
 
         void Update();
         State* GetCurrentState() const { return m_CurrentState; }
