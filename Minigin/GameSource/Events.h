@@ -66,8 +66,17 @@ class EdibleGhostsEvent : public Event
 public:
 	EdibleGhostsEvent()
 	{
-		auto i{4};
-		i;
+
+	}
+
+};
+
+class PelletEaten : public Event
+{
+public:
+	PelletEaten()
+	{
+
 	}
 
 };

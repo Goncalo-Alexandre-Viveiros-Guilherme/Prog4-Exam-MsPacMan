@@ -146,14 +146,14 @@ void MenuController::SelectCurrent()
 {
     if (dynamic_cast<NormalState*>(m_FSM->GetCurrentState())) {
         MsPacmanCode msPacmanCode{ GameModes::Normal };
-        msPacmanCode.LoadGameCode("level1.csv");
+        msPacmanCode.LoadGameCode("level1.csv", "WallsTransparent.png");
     }
     else if (dynamic_cast<VersusState*>(m_FSM->GetCurrentState())) {
         MsPacmanCode msPacmanCode{ GameModes::Versus };
-        msPacmanCode.LoadGameCode("level1.csv");
+        msPacmanCode.LoadGameCode("level1.csv", "WallsTransparent.png");
     }
     else if (dynamic_cast<CoopState*>(m_FSM->GetCurrentState())) {
         MsPacmanCode msPacmanCode{ GameModes::CoOp };
-        msPacmanCode.LoadGameCode("level1.csv");
+        msPacmanCode.LoadGameCode("level1.csv", "WallsTransparent.png");
     }
 }

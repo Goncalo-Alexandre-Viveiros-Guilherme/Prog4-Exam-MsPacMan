@@ -66,6 +66,13 @@ private:
 };
 
 
+class SkipLevel : public Command
+{
+public:
+	SkipLevel() = default;
+	void Execute() override;
+};
+
 class MenuMoveUpCommand : public Command
 {
 public:

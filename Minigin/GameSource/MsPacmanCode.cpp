@@ -22,6 +22,7 @@
 #include "Ghosts.h"
 #include "SpriteComponent.h"
 #include <GhostStates.h>
+#include "WinConditionManager.h"
 
 #include "MoveComponent.h"
 
@@ -45,6 +46,7 @@ void MsPacmanCode::InitializeResources(const std::string& fileName)
 
 	InitSpawnMap();
 
+	dae::InputManager::GetInstance().AddInputMapping<SkipLevel>({ SDL_SCANCODE_F1 }, {}, KeyPressed);
 	dae::InputManager::GetInstance().AddInputMapping<MuteCommand>({ SDL_SCANCODE_F2 }, {}, KeyPressed);
 
 	auto font = dae::ResourceManager::GetInstance().LoadFont("Lingua.otf", 16);
@@ -56,11 +58,15 @@ void MsPacmanCode::InitializeResources(const std::string& fileName)
 		ghost->InitializeFSM(m_Scene,m_ForbiddenCells);
 	}
 
+	WinConditionManager::GetInstance().SetCurrentGameMode(m_GameMode);
+	WinConditionManager::GetInstance().SetWinConditions(m_AmountOfPellets);
+
 	Achievements::GetInstance().NotifyAchievements();
 }
 
-void MsPacmanCode::LoadGameCode(const std::string& fileName)
+void MsPacmanCode::LoadGameCode(const std::string& fileName, const std::string& wallPngFilePath)
 {
+	m_WallPath = wallPngFilePath;
 	InitializeResources(fileName);
 
 	auto& soundService = ServiceLocator::GetAudioService();
@@ -91,7 +97,7 @@ void MsPacmanCode::AddWall(dae::Scene* scene, int col, int row ,int srcX, int sr
 	}
 	
 
-	wall->AddComponent<SpriteComponent>("WallsTransparent.png", srcRect, dstW, dstH, rotation);
+	wall->AddComponent<SpriteComponent>(m_WallPath, srcRect, dstW, dstH, rotation);
 	wall->GetComponent<SpriteComponent>()->SetScale(3, 3);
 
 	scene->Add(std::move<>(wall));
@@ -148,6 +154,7 @@ void MsPacmanCode::InitSpawnMap()
 			pacDot->AddComponent<BoxColliderComponent>(true, false, glm::vec2{2 * m_MapScalingFactor,2 * m_MapScalingFactor },
 				glm::vec2{3* m_MapScalingFactor,3 * m_MapScalingFactor }/*, true*/);
 
+			pacDot->GetComponent<BoxColliderComponent>()->AddOnEnterEvent(std::make_unique<PelletEaten>(), scene->GetGameObjectByName("MsPacMan"));
 			pacDot->GetComponent<BoxColliderComponent>()->AddOnEnterEvent(std::make_unique<AddPointsEvent>(10.f), scene->GetGameObjectByName("MsPacMan"));
 			pacDot->GetComponent<BoxColliderComponent>()->AddOnEnterEvent(std::make_unique <DestroyGameObjectEvent>(pacDot.get()), scene->GetGameObjectByName("MsPacMan"));
 
@@ -159,6 +166,8 @@ void MsPacmanCode::InitSpawnMap()
 				);
 
 			scene->Add(std::move<>(pacDot));
+
+			m_AmountOfPellets += 1;
 		};
 
 	m_SpawnMap["PP"] = [this](dae::Scene* scene, int x, int y, float rotation) {
@@ -170,9 +179,10 @@ void MsPacmanCode::InitSpawnMap()
 
 		auto msPacMan = scene->GetGameObjectByName("MsPacMan");
 
+		boxColliderComponent->AddOnEnterEvent(std::make_unique<PelletEaten>(), scene->GetGameObjectByName("MsPacMan"));
 		boxColliderComponent->AddOnEnterEvent(std::make_unique<AddPointsEvent>(50.f), msPacMan);
-		boxColliderComponent->AddOnEnterEvent(std::make_unique<DestroyGameObjectEvent>(powerPellet.get()), msPacMan);
 		boxColliderComponent->AddOnEnterEvent(std::make_unique<EdibleGhostsEvent>(), msPacMan);
+		boxColliderComponent->AddOnEnterEvent(std::make_unique<DestroyGameObjectEvent>(powerPellet.get()), msPacMan);
 
 		EventDispatcher::GetInstance().AddListener<DestroyGameObjectEvent>
 			(powerPellet.get(), [this](const DestroyGameObjectEvent& event)
@@ -182,6 +192,8 @@ void MsPacmanCode::InitSpawnMap()
 			);
 
 		scene->Add(std::move<>(powerPellet));
+
+		m_AmountOfPellets += 1;
 		};
 	
 		m_SpawnMap["Blinky"] = [this](dae::Scene* scene, int x, int y, float rotation) {

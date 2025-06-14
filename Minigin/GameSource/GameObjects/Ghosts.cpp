@@ -58,6 +58,7 @@ void Blinky::InitializeFSM(dae::Scene* scene, const std::vector<glm::vec2>& forb
 	auto frightenedState = std::make_unique<FSM::BlinkyFrightenedState>(m_MainGameObject,glm::vec2{});
 
 	auto* chaseRaw = chaseState.get();
+	auto* frightenedRaw = frightenedState.get();
 
 	m_FSMComponent->AddTransition(
 		m_NullState,
@@ -69,6 +70,12 @@ void Blinky::InitializeFSM(dae::Scene* scene, const std::vector<glm::vec2>& forb
 		chaseRaw,
 		std::move(frightenedState),
 		std::make_unique<FSM::HasPowerPelletBeenEaten>()
+	);
+
+	m_FSMComponent->AddTransition(
+		frightenedRaw,
+		chaseRaw,
+		std::make_unique<FSM::TimerIsWeak>()
 	);
 
 }

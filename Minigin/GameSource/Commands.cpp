@@ -3,6 +3,7 @@
 #include "MoveComponent.h"
 #include "PointsComponent.h"
 #include "ServiceLocator.h"
+#include "WinConditionManager.h"
 
 MoveCommand::MoveCommand(const float speed, const DesiredDirection desiredDirection, MoveComponent* moveComponent):
 m_Speed(speed),
@@ -60,4 +61,9 @@ void MuteCommand::Execute()
 
 		m_IsMuted = true;
 	}
+}
+
+void SkipLevel::Execute()
+{
+	WinConditionManager::GetInstance().NextLevel();
 }

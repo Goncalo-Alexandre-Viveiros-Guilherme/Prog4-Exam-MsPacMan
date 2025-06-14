@@ -14,18 +14,14 @@
 #include "MsPacmanCode.h"
 #include <filesystem>
 
-#include "GameObject.h"
-#include "InputManager.h"
-#include "MenuController.h"
-#include "ResourceManager.h"
 #include "SteamAchievements.h"
-#include "TextComponent.h"
-#include "Commands.h"
+#include "WinConditionManager.h"
 
 namespace fs = std::filesystem;
 
 void load()
 {
+	WinConditionManager::GetInstance().Init();
 	MsPacmanCode::MainMenuScene();
 }
 
